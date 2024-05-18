@@ -1,6 +1,6 @@
 /******************************************************************
  * File: Fixed-point data types.h             Created: 2024/05/11 *
- *                                      Last modified: 2024/05/17 *
+ *                                      Last modified: 2024/05/18 *
  *                                                                *
  * Desc: Provides sizes of 8, 16, 24, and 32 bits. All sizes have *
  *       support for fixed, normalised, and custom value ranges.  *
@@ -12,6 +12,9 @@
  * Notes: Define FPDT_NO_CUSTOM before including this file to     *
  *        exclude declarations of variables & functions for types *
  *        with user-definable ranges.                             *
+ *        If using those data types, add fpdtInitCustom; to the   *
+ *        global space of one of your project's .c/.cpp source    *
+ *        files.                                                  *
  *        SSE2 support required.                                  *
  *                                                                *
  *                               Copyright (c) David William Bull *
@@ -57,25 +60,32 @@ static cfl64 _fpdt_rcp2p32   = 1.0 / 4294967296.0;
 
 #ifndef FPDT_NO_CUSTOM
 
+// Enter this macro in the global space of one of your .c/.cpp source files
+#define fpdtInitCustom al16 _FPDT_DATA_ _fpdt_data_
+
 // Data for types with a user-defineable range
-static fl32 origin8       = -1.0f;
-static fl32 range8        = 1.0f;
-static fl32 maxDivRange8  = 255.0f;
-static fl32 rangeDivMax8  = _fpdt_rcp255f;
-static fl32 origin16      = -1.0f;
-static fl32 range16       = 1.0f;
-static fl32 maxDivRange16 = 65535.0f;
-static fl32 rangeDivMax16 = _fpdt_rcp65535f;
+struct _FPDT_DATA_ {
+   fl32 origin8 = -1.0f;
+   fl32 range8 = 1.0f;
+   fl32 maxDivRange8 = 255.0f;
+   fl32 rangeDivMax8 = _fpdt_rcp255f;
+   fl32 origin16 = -1.0f;
+   fl32 range16 = 1.0f;
+   fl32 maxDivRange16 = 65535.0f;
+   fl32 rangeDivMax16 = _fpdt_rcp65535f;
 #ifdef _24BIT_INTEGERS_
-static fl32 origin24      = -1.0f;
-static fl32 range24       = 1.0f;
-static fl32 maxDivRange24 = 16777215.0f;
-static fl32 rangeDivMax24 = _fpdt_rcp2p24_1f;
+   fl32 origin24 = -1.0f;
+   fl32 range24 = 1.0f;
+   fl32 maxDivRange24 = 16777215.0f;
+   fl32 rangeDivMax24 = _fpdt_rcp2p24_1f;
 #endif
-static fl64 origin32      = -1.0;
-static fl64 range32       = 1.0;
-static fl64 maxDivRange32 = 4294967295.0;
-static fl64 rangeDivMax32 = _fpdt_rcp2p32_1;
+   fl64 origin32 = -1.0;
+   fl64 range32 = 1.0;
+   fl64 maxDivRange32 = 4294967295.0;
+   fl64 rangeDivMax32 = _fpdt_rcp2p32_1;
+};
+
+extern _FPDT_DATA_ _fpdt_data_;
 
 // Normalised 8-bit : User-defineable decimal range
 struct fp8n {
@@ -83,39 +93,39 @@ struct fp8n {
 
    ui8 data;
 
-   inline cfp8n toFixed(cfl32 &value) const { return (cfp8n &)ui8((value - origin8) * maxDivRange8); }
-   inline cfl32 toFloat(void) const { return fl32(data) * rangeDivMax8 + origin8; };
-   inline cfl32 toFloat(cfp8n &value) const { return fl32(value.data) * rangeDivMax8 + origin8; };
-   inline cui8 toFixedMod(cfp8n &value) const { return (value.data - ui8(origin8 * maxDivRange8)); }
-   inline cui8 toFixedMod(cfl32 &value) const { return ui8(value * maxDivRange8); }
+   inline cfp8n toFixed(cfl32 &value) const { return (cfp8n &)ui8((value - _fpdt_data_.origin8) * _fpdt_data_.maxDivRange8); }
+   inline cfl32 toFloat(void) const { return fl32(data) * _fpdt_data_.rangeDivMax8 + _fpdt_data_.origin8; };
+   inline cfl32 toFloat(cfp8n &value) const { return fl32(value.data) * _fpdt_data_.rangeDivMax8 + _fpdt_data_.origin8; };
+   inline cui8 toFixedMod(cfp8n &value) const { return (value.data - ui8(_fpdt_data_.origin8 * _fpdt_data_.maxDivRange8)); }
+   inline cui8 toFixedMod(cfl32 &value) const { return ui8(value * _fpdt_data_.maxDivRange8); }
 
    fp8n(void) = default;
    fp8n(cfl32 floor, cfl32 ceiling) {
-      origin8      = floor;
-      range8       = ceiling - floor;
-      maxDivRange8 = 255.0f / range8;
-      rangeDivMax8 = range8 / 255.0f;
+      _fpdt_data_.origin8      = floor;
+      _fpdt_data_.range8       = ceiling - floor;
+      _fpdt_data_.maxDivRange8 = 255.0f / _fpdt_data_.range8;
+      _fpdt_data_.rangeDivMax8 = _fpdt_data_.range8 / 255.0f;
    };
    fp8n(cfl32 value, cfl32 floor, cfl32 ceiling) {
-      origin8      = floor;
-      range8       = ceiling - floor;
-      maxDivRange8 = 255.0f / range8;
-      rangeDivMax8 = range8 / 255.0f;
+      _fpdt_data_.origin8      = floor;
+      _fpdt_data_.range8       = ceiling - floor;
+      _fpdt_data_.maxDivRange8 = 255.0f / _fpdt_data_.range8;
+      _fpdt_data_.rangeDivMax8 = _fpdt_data_.range8 / 255.0f;
 
-      data = ui8((value - floor) * maxDivRange8);
+      data = ui8((value - floor) * _fpdt_data_.maxDivRange8);
    };
    fp8n(cui8 value) { data = value; }
-   fp8n(cui16 value) { data = ui8(fl32(value) * rangeDivMax16 + origin16); }
+   fp8n(cui16 value) { data = ui8(fl32(value) * _fpdt_data_.rangeDivMax16 + _fpdt_data_.origin16); }
    fp8n(csi32 value) { data = (ui8 &)value; }
    fp8n(cfl32 value) { data = toFixed(value); }
-   fp8n(cfl64 value) { data = ui8((value - fl64(origin8)) * (255.0 / fl64(range8))); }
+   fp8n(cfl64 value) { data = ui8((value - fl64(_fpdt_data_.origin8)) * (255.0 / fl64(_fpdt_data_.range8))); }
 
    operator cui8(void) const { return data; }
    operator cui16(void) const { return (ui16 &)data & 0x0FF; }
    operator cui32(void) const { return (ui32 &)data & 0x0FF; }
    operator cui64(void) const { return (ui64 &)data & 0x0FF; }
    operator cfl32(void) const { return toFloat(); }
-   operator cfl64(void) const { return fl64(data) * (fl64(range8) / 255.0) + fl64(origin8); }
+   operator cfl64(void) const { return fl64(data) * (fl64(_fpdt_data_.range8) / 255.0) + fl64(_fpdt_data_.origin8); }
 
    inline cfp8n &operator&(void) const { return *this; }
    inline cfp8n operator~(void) const { return (cfp8n &)~data; }
@@ -189,69 +199,58 @@ struct fp8n {
 struct fp8nx4 {
    typedef const fp8n cfp8n; typedef const fp8nx4 cfp8nx4;
 
-   union {
-      ui32 data32;
-      fp8n data[4];
-      ui8  data8[4];
-   };
+   union { ui32 data32; fp8n data[4]; ui8 data8[4]; };
 
-   inline cfp8n toFixed(cfl32 &value) const { return (cfp8n &)ui8((value - origin8) * maxDivRange8); }
-
-   inline cfp8nx4 toFixed4(cfl32x4 &value) const {
-      return (cfp8nx4 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(_mm_sub_ps(value, _mm_set_ps1(origin8)), _mm_set_ps1(maxDivRange8))), _fpdt_shuffle8s);
-   }
-
+   inline cfp8n toFixed(cfl32 &value) const { return (cfp8n &)ui8((value - _fpdt_data_.origin8) * _fpdt_data_.maxDivRange8); }
+   inline cfp8nx4 toFixed4(cfl32x4 &value) const { return (cfp8nx4 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(_mm_sub_ps(value, _mm_set_ps1(_fpdt_data_.origin8)), _mm_set_ps1(_fpdt_data_.maxDivRange8))), _fpdt_shuffle8s); }
    inline cfl32x4 toFloat4(void) const {
-      return _mm_add_ps(_mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu8_epi32(_mm_cvtsi32_si128(data32))), _mm_set_ps1(rangeDivMax8)), _mm_set_ps1(origin8));
+      return _mm_add_ps(_mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu8_epi32(_mm_cvtsi32_si128(data32))), _mm_set_ps1(_fpdt_data_.rangeDivMax8)), _mm_set_ps1(_fpdt_data_.origin8));
    };
-
    inline cfl32x4 toFloat4(cfp8nx4 &value) const {
-      return _mm_add_ps(_mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu8_epi32(_mm_cvtsi32_si128(value.data32))), _mm_set_ps1(rangeDivMax8)), _mm_set_ps1(origin8));
+      return _mm_add_ps(_mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu8_epi32(_mm_cvtsi32_si128(value.data32))), _mm_set_ps1(_fpdt_data_.rangeDivMax8)), _mm_set_ps1(_fpdt_data_.origin8));
    };
-
    inline cfp8nx4 toFixed4Mod(cfp8nx4 &value) const {
-      cfp8nx4 temp = (cfp8nx4 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(_mm_set_ps1(origin8), _mm_set_ps1(maxDivRange8))), _fpdt_shuffle8s);
+      cfp8nx4 temp = (cfp8nx4 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(_mm_set_ps1(_fpdt_data_.origin8), _mm_set_ps1(_fpdt_data_.maxDivRange8))), _fpdt_shuffle8s);
       return cfp8nx4{ ui8(data8[0] - temp.data8[0]), ui8(data8[1] - temp.data8[1]), ui8(data8[2] - temp.data8[2]), ui8(data8[3] - temp.data8[3]) };
    }
-
    inline cfp8nx4 toFixed4Mod(cfl32x4 &value) const {
-      return (cfp8nx4 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _mm_set_ps1(maxDivRange8))), _fpdt_shuffle8s);
+      return (cfp8nx4 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _mm_set_ps1(_fpdt_data_.maxDivRange8))), _fpdt_shuffle8s);
    }
 
    fp8nx4(void) = default;
    fp8nx4(cfl32 floor, cfl32 ceiling) {
-      origin8      = floor;
-      range8       = ceiling - floor;
-      maxDivRange8 = 255.0f / range8;
-      rangeDivMax8 = range8 / 255.0f;
+      _fpdt_data_.origin8      = floor;
+      _fpdt_data_.range8       = ceiling - floor;
+      _fpdt_data_.maxDivRange8 = 255.0f / _fpdt_data_.range8;
+      _fpdt_data_.rangeDivMax8 = _fpdt_data_.range8 / 255.0f;
    };
    fp8nx4(cfp8n value, cui8 index) { data[index] = value.data; }
    fp8nx4(cui8 value, cui8 index) { data8[index] = value; }
    fp8nx4(csi32 value, cui8 index) { data8[index] = (ui8 &)value; }
    fp8nx4(cfl32 value, cui8 index) { data8[index] = toFixed(value); }
-   fp8nx4(fp8n (&value)[4]) { data32 = (ui32 &)value[0]; }
+   fp8nx4(cfp8n (&value)[4]) { data32 = (ui32 &)value[0]; }
    fp8nx4(cui8 (&value)[4]) { data32 = (ui32 &)value[0]; }
-   fp8nx4(cfp8n value) { data[0] = value; data[1] = value; data[2] = value; data[3] = value; }
-   fp8nx4(cui8 value) { data8[0] = value; data8[1] = value; data8[2] = value; data8[3] = value; }
+   fp8nx4(cfp8n value) { data[0] = data[1] = data[2] = data[3] = value; }
+   fp8nx4(cui8 value) { data8[0] = data8[1] = data8[2] = data8[3] = value; }
    fp8nx4(cui32 value) { data32 = value; }
    fp8nx4(csi32 value) { data32 = (ui32 &)value; }
-   fp8nx4(cfl32 value) { cfp8n temp = toFixed(value); data8[0] = temp; data8[1] = temp; data8[2] = temp; data8[3] = temp; }
+   fp8nx4(cfl32 value) { cfp8n temp = toFixed(value); data8[0] = data8[1] = data8[2] = data8[3] = temp; }
    fp8nx4(cfl32x4 value) { *this = toFixed4(value); }
    fp8nx4(cfp8n value0, cfp8n value1, cfp8n value2, cfp8n value3) { data[0] = value0; data[1] = value1; data[2] = value2; data[3] = value3; }
    fp8nx4(cui8 value0, cui8 value1, cui8 value2, cui8 value3) { data8[0] = value0; data8[1] = value1; data8[2] = value2; data8[3] = value3; }
    fp8nx4(csi32 value0, csi32 value1, csi32 value2, csi32 value3) { data8[0] = (ui8 &)value0; data8[1] = (ui8 &)value1; data8[2] = (ui8 &)value2; data8[3] = (ui8 &)value3; }
    fp8nx4(cfl32 value, cui8 index, cfl32 floor, cfl32 ceiling) {
-      origin8      = floor;
-      range8       = ceiling - floor;
-      maxDivRange8 = 255.0f / range8;
-      rangeDivMax8 = range8 / 255.0f;
-      data8[index] = ui8((value - floor) * maxDivRange8);
+      _fpdt_data_.origin8      = floor;
+      _fpdt_data_.range8       = ceiling - floor;
+      _fpdt_data_.maxDivRange8 = 255.0f / _fpdt_data_.range8;
+      _fpdt_data_.rangeDivMax8 = _fpdt_data_.range8 / 255.0f;
+      data8[index] = ui8((value - floor) * _fpdt_data_.maxDivRange8);
    };
    fp8nx4(cfl32x4 value, cfl32 floor, cfl32 ceiling) {
-      origin8      = floor;
-      range8       = ceiling - floor;
-      maxDivRange8 = 255.0f / range8;
-      rangeDivMax8 = range8 / 255.0f;
+      _fpdt_data_.origin8      = floor;
+      _fpdt_data_.range8       = ceiling - floor;
+      _fpdt_data_.maxDivRange8 = 255.0f / _fpdt_data_.range8;
+      _fpdt_data_.rangeDivMax8 = _fpdt_data_.range8 / 255.0f;
       data32       = toFixed4(value);
    }
 
@@ -365,39 +364,39 @@ struct fp16n {
 
    ui16 data;
 
-   inline cfp16n toFixed(cfl32 &value) const { return (cfp16n &)ui16((value - origin16) * maxDivRange16); }
-   inline cfl32 toFloat(void) const { return fl32(data) * rangeDivMax16 + origin16; };
-   inline cfl32 toFloat(cfp16n &value) const { return fl32(value.data) * rangeDivMax16 + origin16; };
-   inline cui16 toFixedMod(cfp16n &value) const { return (value.data - ui16(origin16 * maxDivRange16)); }
-   inline cui16 toFixedMod(cfl32 &value) const { return ui16(value * maxDivRange16); }
+   inline cfp16n toFixed(cfl32 &value) const { return (cfp16n &)ui16((value - _fpdt_data_.origin16) * _fpdt_data_.maxDivRange16); }
+   inline cfl32 toFloat(void) const { return fl32(data) * _fpdt_data_.rangeDivMax16 + _fpdt_data_.origin16; };
+   inline cfl32 toFloat(cfp16n &value) const { return fl32(value.data) * _fpdt_data_.rangeDivMax16 + _fpdt_data_.origin16; };
+   inline cui16 toFixedMod(cfp16n &value) const { return (value.data - ui16(_fpdt_data_.origin16 * _fpdt_data_.maxDivRange16)); }
+   inline cui16 toFixedMod(cfl32 &value) const { return ui16(value * _fpdt_data_.maxDivRange16); }
 
-   fp16n(void) = default;
+   fp16n(void) {};
    fp16n(cfl32 floor, cfl32 ceiling) {
-      origin16      = floor;
-      range16       = ceiling - floor;
-      maxDivRange16 = 65535.0f / range16;
-      rangeDivMax16 = range16 / 65535.0f;
+      _fpdt_data_.origin16      = floor;
+      _fpdt_data_.range16       = ceiling - floor;
+      _fpdt_data_.maxDivRange16 = 65535.0f / _fpdt_data_.range16;
+      _fpdt_data_.rangeDivMax16 = _fpdt_data_.range16 / 65535.0f;
    };
    fp16n(cfl32 value, cfl32 floor, cfl32 ceiling) {
-      origin16      = floor;
-      range16       = ceiling - floor;
-      maxDivRange16 = 65535.0f / range16;
-      rangeDivMax16 = range16 / 65535.0f;
+      _fpdt_data_.origin16      = floor;
+      _fpdt_data_.range16       = ceiling - floor;
+      _fpdt_data_.maxDivRange16 = 65535.0f / _fpdt_data_.range16;
+      _fpdt_data_.rangeDivMax16 = _fpdt_data_.range16 / 65535.0f;
 
-      data = ui16((value - floor) * maxDivRange16);
+      data = ui16((value - floor) * _fpdt_data_.maxDivRange16);
    };
-   fp16n(cui8 value) { data = toFixed(fl32(value) * rangeDivMax8 + origin8); }
+   fp16n(cui8 value) { data = toFixed(fl32(value) * _fpdt_data_.rangeDivMax8 + _fpdt_data_.origin8); }
    fp16n(cui16 value) { data = value; }
    fp16n(csi32 value) { data = (ui16 &)value; }
    fp16n(cfl32 value) { data = toFixed(value); }
-   fp16n(cfl64 value) { data = ui16((value - fl64(origin16)) * (65535.0 / fl64(range16))); }
+   fp16n(cfl64 value) { data = ui16((value - fl64(_fpdt_data_.origin16)) * (65535.0 / fl64(_fpdt_data_.range16))); }
 
-   operator cui8(void) const { return ui8((toFloat() - origin8) * maxDivRange8); }
+   operator cui8(void) const { return ui8((toFloat() - _fpdt_data_.origin8) * _fpdt_data_.maxDivRange8); }
    operator cui16(void) const { return data; }
    operator cui32(void) const { return (ui32 &)data & 0x0FFFF; }
    operator cui64(void) const { return (ui64 &)data & 0x0FFFF; }
    operator cfl32(void) const { return toFloat(); }
-   operator cfl64(void) const { return fl64(data) * (fl64(range16) / 65535.0) + fl64(origin16); }
+   operator cfl64(void) const { return fl64(data) * (fl64(_fpdt_data_.range16) / 65535.0) + fl64(_fpdt_data_.origin16); }
 
    inline cfp16n &operator&(void) const { return *this; }
    inline cfp16n operator~(void) const { return (cfp16n &)~data; }
@@ -409,10 +408,19 @@ struct fp16n {
    inline cfp16n operator--(void) { data--; return *this; }
    inline cfp16n operator--(int) { cui16 temp = data--; return (cfp16n &)temp; }
 
-   inline cfp16n operator<<(si32 &value) const { return (cfp16n &)(data << value); }
-   inline cfp16n operator>>(si32 &value) const { return (cfp16n &)(data >> value); }
-   inline cfp16n operator<<=(si32 &value) { return (cfp16n &)(data <<= value); }
-   inline cfp16n operator>>=(si32 &value) { return (cfp16n &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui16 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui16 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui16 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui16 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui16 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui16 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui16 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui16 &)data; }
+
+   inline cfp16n operator<<(csi32 &value) const { return (cfp16n &)(data << value); }
+   inline cfp16n operator>>(csi32 &value) const { return (cfp16n &)(data >> value); }
+   inline cfp16n operator<<=(csi32 &value) { return (cfp16n &)(data <<= value); }
+   inline cfp16n operator>>=(csi32 &value) { return (cfp16n &)(data >>= value); }
 
    inline cbool operator==(cfp16n &value) const { return data == value.data; }
    inline cbool operator!=(cfp16n &value) const { return data != value.data; }
@@ -471,51 +479,43 @@ struct fp16n {
 struct fp16nx4 {
    typedef const fp16n cfp16n; typedef const fp16nx4 cfp16nx4;
 
-   union {
-      ui64  data64;
-      fp16n data[4];
-      ui16  data16[4];
-   };
+   union { ui64 data64; fp16n data[4]; ui16 data16[4]; };
 
-   inline cfp16n toFixed(cfl32 &value) const { return (cfp16n &)ui16((value - origin16) * maxDivRange16); }
-
+   inline cfp16n toFixed(cfl32 &value) const { return (cfp16n &)ui16((value - _fpdt_data_.origin16) * _fpdt_data_.maxDivRange16); }
    inline cfp16nx4 toFixed4(cfl32x4 &value) const {
-      return (cfp16nx4 &)_mm_shuffle_epi8(_mm_cvttps_epi32( _mm_mul_ps(_mm_sub_ps(value, _mm_set_ps1(origin16)), _mm_set_ps1(maxDivRange16))), _fpdt_shuffle16s);
+      return (cfp16nx4 &)_mm_shuffle_epi8(_mm_cvttps_epi32( _mm_mul_ps(_mm_sub_ps(value, _mm_set_ps1(_fpdt_data_.origin16)), _mm_set_ps1(_fpdt_data_.maxDivRange16))), _fpdt_shuffle16s);
    }
-
    inline cfl32x4 toFloat4(void) const {
-      return _mm_add_ps(_mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu16_epi32(_mm_cvtsi64_si128(data64))), _mm_set_ps1(rangeDivMax16)), _mm_set_ps1(origin16));
+      return _mm_add_ps(_mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu16_epi32(_mm_cvtsi64_si128(data64))), _mm_set_ps1(_fpdt_data_.rangeDivMax16)), _mm_set_ps1(_fpdt_data_.origin16));
    };
-
    inline cfl32x4 toFloat4(cfp16nx4 &value) const {
-      return _mm_add_ps(_mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu16_epi32(_mm_cvtsi64_si128(value.data64))), _mm_set_ps1(rangeDivMax16)), _mm_set_ps1(origin16));
+      return _mm_add_ps(_mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu16_epi32(_mm_cvtsi64_si128(value.data64))), _mm_set_ps1(_fpdt_data_.rangeDivMax16)), _mm_set_ps1(_fpdt_data_.origin16));
    };
-
    inline cfp16nx4 toFixed4Mod(cfp16nx4 &value) const {
-      cfp16nx4 temp = (cfp16nx4 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(_mm_set_ps1(origin16), _mm_set_ps1(maxDivRange16))), _fpdt_shuffle16s);
+      cfp16nx4 temp = (cfp16nx4 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(_mm_set_ps1(_fpdt_data_.origin16), _mm_set_ps1(_fpdt_data_.maxDivRange16))), _fpdt_shuffle16s);
       return cfp16nx4{ ui16(data16[0] - temp.data16[0]), ui16(data16[1] - temp.data16[1]), ui16(data16[2] - temp.data16[2]), ui16(data16[3] - temp.data16[3]) };
    }
-
    inline cfp16nx4 toFixed4Mod(cfl32x4 &value) const {
-      return (cfp16nx4 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _mm_set_ps1(maxDivRange16))), _fpdt_shuffle16s);
+      return (cfp16nx4 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _mm_set_ps1(_fpdt_data_.maxDivRange16))), _fpdt_shuffle16s);
    }
 
    fp16nx4(void) = default;
    fp16nx4(cfl32 floor, cfl32 ceiling) {
-      origin16      = floor;
-      range16       = ceiling - floor;
-      maxDivRange16 = 65535.0f / range16;
-      rangeDivMax16 = range16 / 65535.0f;
+      _fpdt_data_.origin16      = floor;
+      _fpdt_data_.range16       = ceiling - floor;
+      _fpdt_data_.maxDivRange16 = 65535.0f / _fpdt_data_.range16;
+      _fpdt_data_.rangeDivMax16 = _fpdt_data_.range16 / 65535.0f;
    };
    fp16nx4(cfp16n value, cui8 index) { data[index] = value.data; }
    fp16nx4(cui16 value, cui8 index) { data16[index] = value; }
    fp16nx4(csi32 value, cui8 index) { data16[index] = (ui16 &)value; }
-   fp16nx4(cfl32 value, cui8 index) { data16[index] = ui16((value - origin16) * maxDivRange16); }
-   fp16nx4(fp16n (&value)[4]) { data64 = (ui64 &)value[0]; }
+   fp16nx4(cfl32 value, cui8 index) { data16[index] = ui16((value - _fpdt_data_.origin16) * _fpdt_data_.maxDivRange16); }
+   fp16nx4(cfp16n (&value)[4]) { data64 = (ui64 &)value[0]; }
    fp16nx4(cui16 (&value)[4]) { data64 = (ui64 &)value[0]; }
-   fp16nx4(cui16 value) { data16[0] = value; data16[1] = value; data16[2] = value; data16[3] = value; }
+   fp16nx4(cfp16n value) { data[0] = data[1] = data[2] = data[3] = value; }
+   fp16nx4(cui16 value) { data16[0] = data16[1] = data16[2] = data16[3] = value; }
    fp16nx4(csi32 value) { data16[0] = (ui16 &)value; data16[1] = (ui16 &)value; data16[2] = (ui16 &)value; data16[3] = (ui16 &)value; }
-   fp16nx4(cfl32 value) { cfp16n temp = toFixed(value); data16[0] = temp; data16[1] = temp; data16[2] = temp; data16[3] = temp; }
+   fp16nx4(cfl32 value) { cfp16n temp = toFixed(value); data16[0] = data16[1] = data16[2] = data16[3] = temp; }
    fp16nx4(cui64 value) { data64 = value; }
    fp16nx4(csi64 value) { data64 = (ui64 &)value; }
    fp16nx4(cfl32x4 value) { *this = toFixed4(value); }
@@ -523,17 +523,17 @@ struct fp16nx4 {
    fp16nx4(cui16 value0, cui16 value1, cui16 value2, cui16 value3) { data16[0] = value0; data16[1] = value1; data16[2] = value2; data16[3] = value3; }
    fp16nx4(csi32 value0, csi32 value1, csi32 value2, csi32 value3) { data16[0] = (ui16 &)value0; data16[1] = (ui16 &)value1; data16[2] = (ui16 &)value2; data16[3] = (ui16 &)value3; }
    fp16nx4(cfl32 value, cui8 index, cfl32 floor, cfl32 ceiling) {
-      origin16      = floor;
-      range16       = ceiling - floor;
-      maxDivRange16 = 65535.0f / range16;
-      rangeDivMax16 = range16 / 65535.0f;
-      data16[index] = ui16((value - floor) * maxDivRange16);
+      _fpdt_data_.origin16      = floor;
+      _fpdt_data_.range16       = ceiling - floor;
+      _fpdt_data_.maxDivRange16 = 65535.0f / _fpdt_data_.range16;
+      _fpdt_data_.rangeDivMax16 = _fpdt_data_.range16 / 65535.0f;
+      data16[index] = ui16((value - floor) * _fpdt_data_.maxDivRange16);
    };
    fp16nx4(cfl32x4 value, cfl32 floor, cfl32 ceiling) {
-      origin16      = floor;
-      range16       = ceiling - floor;
-      maxDivRange16 = 65535.0f / range16;
-      rangeDivMax16 = range16 / 65535.0f;
+      _fpdt_data_.origin16      = floor;
+      _fpdt_data_.range16       = ceiling - floor;
+      _fpdt_data_.maxDivRange16 = 65535.0f / _fpdt_data_.range16;
+      _fpdt_data_.rangeDivMax16 = _fpdt_data_.range16 / 65535.0f;
       data64        = toFixed4(value);
    }
 
@@ -646,41 +646,41 @@ struct fp24n {
 
    ui24 data;
 
-   inline cui24 toFixed(cfl32 &value) const { return ui24((value - origin24) * maxDivRange24); }
-   inline cfl32 toFloat(void) const { return fl32(data) * rangeDivMax24 + origin24; };
-   inline cfl32 toFloat(cfp24n &value) const { return fl32(value.data) * rangeDivMax24 + origin24; };
-   inline cui24 toFixedMod(cfp24n &value) const { return (value.data - ui24(origin24 * maxDivRange24)); }
-   inline cui24 toFixedMod(cfl32 &value) const { return ui24(value * maxDivRange24); }
+   inline cui24 toFixed(cfl32 &value) const { return ui24((value - _fpdt_data_.origin24) * _fpdt_data_.maxDivRange24); }
+   inline cfl32 toFloat(void) const { return fl32(data) * _fpdt_data_.rangeDivMax24 + _fpdt_data_.origin24; };
+   inline cfl32 toFloat(cfp24n &value) const { return fl32(value.data) * _fpdt_data_.rangeDivMax24 + _fpdt_data_.origin24; };
+   inline cui24 toFixedMod(cfp24n &value) const { return (value.data - ui24(_fpdt_data_.origin24 * _fpdt_data_.maxDivRange24)); }
+   inline cui24 toFixedMod(cfl32 &value) const { return ui24(value * _fpdt_data_.maxDivRange24); }
 
    fp24n(void) = default;
    fp24n(cfl32 floor, cfl32 ceiling) {
-      origin24      = floor;
-      range24       = ceiling - floor;
-      maxDivRange24 = 16777215.0f / range24;
-      rangeDivMax24 = range24 / 16777215.0f;
+      _fpdt_data_.origin24      = floor;
+      _fpdt_data_.range24       = ceiling - floor;
+      _fpdt_data_.maxDivRange24 = 16777215.0f / _fpdt_data_.range24;
+      _fpdt_data_.rangeDivMax24 = _fpdt_data_.range24 / 16777215.0f;
    };
    fp24n(cfl32 value, cfl32 floor, cfl32 ceiling) {
-      origin24      = floor;
-      range24       = ceiling - floor;
-      maxDivRange24 = 16777215.0f / range24;
-      rangeDivMax24 = range24 / 16777215.0f;
+      _fpdt_data_.origin24      = floor;
+      _fpdt_data_.range24       = ceiling - floor;
+      _fpdt_data_.maxDivRange24 = 16777215.0f / _fpdt_data_.range24;
+      _fpdt_data_.rangeDivMax24 = _fpdt_data_.range24 / 16777215.0f;
 
-      data = ui24((value - floor) * maxDivRange24);
+      data = ui24((value - floor) * _fpdt_data_.maxDivRange24);
    };
-   fp24n(cui8 value) { data = toFixed(fl32(value) * rangeDivMax8 + origin8); }
-   fp24n(cui16 value) { data = toFixed(fl32(value) * rangeDivMax16 + origin16); }
+   fp24n(cui8 value) { data = toFixed(fl32(value) * _fpdt_data_.rangeDivMax8 + _fpdt_data_.origin8); }
+   fp24n(cui16 value) { data = toFixed(fl32(value) * _fpdt_data_.rangeDivMax16 + _fpdt_data_.origin16); }
    fp24n(cui24 value) { data = value; }
    fp24n(csi32 value) { data = (ui24 &)value; }
    fp24n(cfl32 value) { data = toFixed(value); }
-   fp24n(cfl64 value) { data = ui24((value - fl64(origin24)) * (16777215.0f / fl64(range24))); }
+   fp24n(cfl64 value) { data = ui24((value - fl64(_fpdt_data_.origin24)) * (16777215.0f / fl64(_fpdt_data_.range24))); }
 
-   operator cui8(void) const { return ui8((toFloat() - origin8) * maxDivRange8); }
-   operator cui16(void) const { return ui16((toFloat() - origin16) * maxDivRange16); }
+   operator cui8(void) const { return ui8((toFloat() - _fpdt_data_.origin8) * _fpdt_data_.maxDivRange8); }
+   operator cui16(void) const { return ui16((toFloat() - _fpdt_data_.origin16) * _fpdt_data_.maxDivRange16); }
    operator cui24(void) const { return data; }
    operator cui32(void) const { return (ui32 &)data & 0x0FFFFFF; }
    operator cui64(void) const { return (ui64 &)data & 0x0FFFFFF; }
    operator cfl32(void) const { return toFloat(); }
-   operator cfl64(void) const { return fl64(data) * (fl64(range24) / 16777215.0) + fl64(origin24); }
+   operator cfl64(void) const { return fl64(data) * (fl64(_fpdt_data_.range24) / 16777215.0) + fl64(_fpdt_data_.origin24); }
 
    inline cfp24n &operator&(void) const { return *this; }
    inline cfp24n operator~(void) const { return (cfp24n &)~data; }
@@ -692,10 +692,19 @@ struct fp24n {
    inline cfp24n operator--(void) { data--; return *this; }
    inline cfp24n operator--(int) { cui24 temp = data--; return (cfp24n &)temp; }
 
-   inline cfp24n operator<<(si32 &value) const { return (cfp24n &)(data << value); }
-   inline cfp24n operator>>(si32 &value) const { return (cfp24n &)(data >> value); }
-   inline cfp24n operator<<=(si32 &value) { return (cfp24n &)(data <<= value); }
-   inline cfp24n operator>>=(si32 &value) { return (cfp24n &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui24 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui24 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui24 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui24 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui24 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui24 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui24 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui24 &)data; }
+
+   inline cfp24n operator<<(csi32 &value) const { return (cfp24n &)(data << value); }
+   inline cfp24n operator>>(csi32 &value) const { return (cfp24n &)(data >> value); }
+   inline cfp24n operator<<=(csi32 &value) { return (cfp24n &)(data <<= value); }
+   inline cfp24n operator>>=(csi32 &value) { return (cfp24n &)(data >>= value); }
 
    inline cbool operator==(cfp24n &value) const { return data == value.data; }
    inline cbool operator!=(cfp24n &value) const { return data != value.data; }
@@ -758,38 +767,38 @@ struct fp32n {
 
    ui32 data;
 
-   inline cui32 toFixed(cfl64 &value) const { return ui32((value - origin32) * maxDivRange32); }
-   inline cfl64 toFloat(void) const { return fl64(data) * rangeDivMax32 + origin32; };
-   inline cfl64 toFloat(cfp32n &value) const { return fl64(value.data) * rangeDivMax32 + origin32; };
-   inline cui32 toFixedMod(cfp32n &value) const { return (value.data - ui32(origin32 * maxDivRange32)); }
-   inline cui32 toFixedMod(cfl64 &value) const { return ui32(value * maxDivRange32); }
+   inline cui32 toFixed(cfl64 &value) const { return ui32((value - _fpdt_data_.origin32) * _fpdt_data_.maxDivRange32); }
+   inline cfl64 toFloat(void) const { return fl64(data) * _fpdt_data_.rangeDivMax32 + _fpdt_data_.origin32; };
+   inline cfl64 toFloat(cfp32n &value) const { return fl64(value.data) * _fpdt_data_.rangeDivMax32 + _fpdt_data_.origin32; };
+   inline cui32 toFixedMod(cfp32n &value) const { return (value.data - ui32(_fpdt_data_.origin32 * _fpdt_data_.maxDivRange32)); }
+   inline cui32 toFixedMod(cfl64 &value) const { return ui32(value * _fpdt_data_.maxDivRange32); }
 
    fp32n(void) = default;
    fp32n(cfl64 floor, cfl64 ceiling) {
-      origin32      = floor;
-      range32       = ceiling - floor;
-      maxDivRange32 = 4294967296.0 / range32;
-      rangeDivMax32 = range32 / 4294967296.0;
+      _fpdt_data_.origin32      = floor;
+      _fpdt_data_.range32       = ceiling - floor;
+      _fpdt_data_.maxDivRange32 = 4294967296.0 / _fpdt_data_.range32;
+      _fpdt_data_.rangeDivMax32 = _fpdt_data_.range32 / 4294967296.0;
    };
    fp32n(cfl64 value, cfl64 floor, cfl64 ceiling) {
-      origin32      = floor;
-      range32       = ceiling - floor;
-      maxDivRange32 = 4294967296.0 / range32;
-      rangeDivMax32 = range32 / 4294967296.0;
+      _fpdt_data_.origin32      = floor;
+      _fpdt_data_.range32       = ceiling - floor;
+      _fpdt_data_.maxDivRange32 = 4294967296.0 / _fpdt_data_.range32;
+      _fpdt_data_.rangeDivMax32 = _fpdt_data_.range32 / 4294967296.0;
 
-      data = ui32((value - floor) * maxDivRange32);
+      data = ui32((value - floor) * _fpdt_data_.maxDivRange32);
    };
-   fp32n(cui8 value) { data = toFixed(fl32(value) * rangeDivMax8 + origin8); }
-   fp32n(cui16 value) { data = toFixed(fl32(value) * rangeDivMax16 + origin16); }
-   fp32n(cui24 value) { data = toFixed(fl32(value) * rangeDivMax24 + origin24); }
+   fp32n(cui8 value) { data = toFixed(fl32(value) * _fpdt_data_.rangeDivMax8 + _fpdt_data_.origin8); }
+   fp32n(cui16 value) { data = toFixed(fl32(value) * _fpdt_data_.rangeDivMax16 + _fpdt_data_.origin16); }
+   fp32n(cui24 value) { data = toFixed(fl32(value) * _fpdt_data_.rangeDivMax24 + _fpdt_data_.origin24); }
    fp32n(cui32 value) { data = value; }
    fp32n(csi32 value) { data = (ui32 &)value; }
    fp32n(cfl32 value) { data = toFixed(value); }
-   fp32n(cfl64 value) { data = ui32((value - origin32) * maxDivRange32); }
+   fp32n(cfl64 value) { data = ui32((value - _fpdt_data_.origin32) * _fpdt_data_.maxDivRange32); }
 
-   operator cui8(void) const { return ui8((toFloat() - origin8) * maxDivRange8); }
-   operator cui16(void) const { return ui16((toFloat() - origin16) * maxDivRange16); }
-   operator cui24(void) const { return ui16((toFloat() - origin24) * maxDivRange24); }
+   operator cui8(void) const { return ui8((toFloat() - _fpdt_data_.origin8) * _fpdt_data_.maxDivRange8); }
+   operator cui16(void) const { return ui16((toFloat() - _fpdt_data_.origin16) * _fpdt_data_.maxDivRange16); }
+   operator cui24(void) const { return ui16((toFloat() - _fpdt_data_.origin24) * _fpdt_data_.maxDivRange24); }
    operator cui32(void) const { return data; }
    operator cui64(void) const { return (ui64 &)data & 0x0FFFFFFFF; }
    operator cfl32(void) const { return fl32(toFloat()); }
@@ -805,10 +814,19 @@ struct fp32n {
    inline cfp32n operator--(void) { data--; return *this; }
    inline cfp32n operator--(int) { cui32 temp = data--; return (cfp32n &)temp; }
 
-   inline cfp32n operator<<(si32 &value) const { return (cfp32n &)(data << value); }
-   inline cfp32n operator>>(si32 &value) const { return (cfp32n &)(data >> value); }
-   inline cfp32n operator<<=(si32 &value) { return (cfp32n &)(data <<= value); }
-   inline cfp32n operator>>=(si32 &value) { return (cfp32n &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui32 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui32 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui32 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui32 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui32 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui32 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui32 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui32 &)data; }
+
+   inline cfp32n operator<<(csi32 &value) const { return (cfp32n &)(data << value); }
+   inline cfp32n operator>>(csi32 &value) const { return (cfp32n &)(data >> value); }
+   inline cfp32n operator<<=(csi32 &value) { return (cfp32n &)(data <<= value); }
+   inline cfp32n operator>>=(csi32 &value) { return (cfp32n &)(data >>= value); }
 
    inline cbool operator==(cfp32n &value) const { return data == value.data; }
    inline cbool operator!=(cfp32n &value) const { return data != value.data; }
@@ -883,10 +901,19 @@ struct f0p8 {
    inline cf0p8 operator--(void) { data--; return *this; }
    inline cf0p8 operator--(int) { cui8 temp = data--; return (cf0p8 &)temp; }
 
-   inline cf0p8 operator<<(si32 &value) const { return (cf0p8 &)(data << value); }
-   inline cf0p8 operator>>(si32 &value) const { return (cf0p8 &)(data >> value); }
-   inline cf0p8 operator<<=(si32 &value) { return (cf0p8 &)(data <<= value); }
-   inline cf0p8 operator>>=(si32 &value) { return (cf0p8 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui8 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui8 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui8 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui8 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui8 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui8 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui8 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui8 &)data; }
+
+   inline cf0p8 operator<<(csi32 &value) const { return (cf0p8 &)(data << value); }
+   inline cf0p8 operator>>(csi32 &value) const { return (cf0p8 &)(data >> value); }
+   inline cf0p8 operator<<=(csi32 &value) { return (cf0p8 &)(data <<= value); }
+   inline cf0p8 operator>>=(csi32 &value) { return (cf0p8 &)(data >>= value); }
 
    inline cf0p8 operator+(cf0p8 &value) const { return data + value.data; }
    inline cf0p8 operator-(cf0p8 &value) const { return data - value.data; }
@@ -919,10 +946,19 @@ struct f1p7 {
    inline cf1p7 operator--(void) { data--; return *this; }
    inline cf1p7 operator--(int) { cui8 temp = data--; return (cf1p7 &)temp; }
 
-   inline cf1p7 operator<<(si32 &value) const { return (cf1p7 &)(data << value); }
-   inline cf1p7 operator>>(si32 &value) const { return (cf1p7 &)(data >> value); }
-   inline cf1p7 operator<<=(si32 &value) { return (cf1p7 &)(data <<= value); }
-   inline cf1p7 operator>>=(si32 &value) { return (cf1p7 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui8 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui8 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui8 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui8 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui8 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui8 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui8 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui8 &)data; }
+
+   inline cf1p7 operator<<(csi32 &value) const { return (cf1p7 &)(data << value); }
+   inline cf1p7 operator>>(csi32 &value) const { return (cf1p7 &)(data >> value); }
+   inline cf1p7 operator<<=(csi32 &value) { return (cf1p7 &)(data <<= value); }
+   inline cf1p7 operator>>=(csi32 &value) { return (cf1p7 &)(data >>= value); }
 
    inline cf1p7 operator+(cf1p7 &value) const { return data + value.data; }
    inline cf1p7 operator-(cf1p7 &value) const { return data - value.data; }
@@ -955,10 +991,19 @@ struct f4p4 {
    inline cf4p4 operator--(void) { data--; return *this; }
    inline cf4p4 operator--(int) { cui8 temp = data--; return (cf4p4 &)temp; }
 
-   inline cf4p4 operator<<(si32 &value) const { return (cf4p4 &)(data << value); }
-   inline cf4p4 operator>>(si32 &value) const { return (cf4p4 &)(data >> value); }
-   inline cf4p4 operator<<=(si32 &value) { return (cf4p4 &)(data <<= value); }
-   inline cf4p4 operator>>=(si32 &value) { return (cf4p4 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui8 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui8 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui8 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui8 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui8 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui8 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui8 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui8 &)data; }
+
+   inline cf4p4 operator<<(csi32 &value) const { return (cf4p4 &)(data << value); }
+   inline cf4p4 operator>>(csi32 &value) const { return (cf4p4 &)(data >> value); }
+   inline cf4p4 operator<<=(csi32 &value) { return (cf4p4 &)(data <<= value); }
+   inline cf4p4 operator>>=(csi32 &value) { return (cf4p4 &)(data >>= value); }
 
    inline cf4p4 operator+(cf4p4 &value) const { return data + value.data; }
    inline cf4p4 operator-(cf4p4 &value) const { return data - value.data; }
@@ -995,10 +1040,19 @@ struct fp8n0_1 {
    inline cfp8n0_1 operator--(void) { data--; return *this; }
    inline cfp8n0_1 operator--(int) { cui8 temp = data--; return (cfp8n0_1 &)temp; }
 
-   inline cfp8n0_1 operator<<(si32 &value) const { return (cfp8n0_1 &)(data << value); }
-   inline cfp8n0_1 operator>>(si32 &value) const { return (cfp8n0_1 &)(data >> value); }
-   inline cfp8n0_1 operator<<=(si32 &value) { return (cfp8n0_1 &)(data <<= value); }
-   inline cfp8n0_1 operator>>=(si32 &value) { return (cfp8n0_1 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui8 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui8 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui8 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui8 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui8 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui8 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui8 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui8 &)data; }
+
+   inline cfp8n0_1 operator<<(csi32 &value) const { return (cfp8n0_1 &)(data << value); }
+   inline cfp8n0_1 operator>>(csi32 &value) const { return (cfp8n0_1 &)(data >> value); }
+   inline cfp8n0_1 operator<<=(csi32 &value) { return (cfp8n0_1 &)(data <<= value); }
+   inline cfp8n0_1 operator>>=(csi32 &value) { return (cfp8n0_1 &)(data >>= value); }
 
    inline cfp8n0_1 operator+(cfp8n0_1 &value) const { return data + value.data; }
    inline cfp8n0_1 operator-(cfp8n0_1 &value) const { return data - value.data; }
@@ -1013,31 +1067,25 @@ struct fp8n0_1 {
 
 // 4x normalised 8-bit : Decimal ranges of 0.0~1.0
 struct fp8n0_1x4 {
-   typedef const fp8n0_1x4 cfp8n0_1x4;
+   typedef const fp8n0_1 cfp8n0_1; typedef const fp8n0_1x4 cfp8n0_1x4;
 
-   union {
-      ui32    data32;
-      fp8n0_1 data[4];
-      ui8     data8[4];
-   };
+   union { ui32 data32; fp8n0_1 data[4]; ui8 data8[4]; };
 
    fp8n0_1x4(void) = default;
    fp8n0_1x4(fp8n0_1 value, cui8 index) { data[index] = value; }
    fp8n0_1x4(cui8 value, cui8 index) { data8[index] = value; }
    fp8n0_1x4(cfl32 value, cui8 index) { data8[index] = ui8(value * 255.0f); }
-   fp8n0_1x4(fp8n0_1 (&value)[4]) { data32 = (ui32 &)value[0]; }
+   fp8n0_1x4(cfp8n0_1 (&value)[4]) { data32 = (ui32 &)value[0]; }
    fp8n0_1x4(cui8 (&value)[4]) { data32 = (ui32 &)value[0]; }
+   fp8n0_1x4(cfp8n0_1 value) { data[0] = data[1] = data[2] = data[3] = value; }
+   fp8n0_1x4(cui8 value) { data8[0] = data8[1] = data8[2] = data8[3] = value; }
    fp8n0_1x4(cui32 value) { data32 = value; }
-   fp8n0_1x4(cfl32 value) { cui8 temp = ui8(value * 255.0f); data8[0] = temp; data8[1] = temp; data8[2] = temp; data8[3] = temp; }
+   fp8n0_1x4(cfl32 value) { cui8 temp = ui8(value * 255.0f); data8[0] = data8[1] = data8[2] = data8[3] = temp; }
    fp8n0_1x4(cui8 value0, cui8 value1, cui8 value2, cui8 value3) { data8[0] = value0; data8[1] = value1; data8[2] = value2; data8[3] = value3; }
-   fp8n0_1x4(cfl32x4 value) {
-      data32 = (ui32 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_255fx4)), _fpdt_shuffle8s);
-   }
+   fp8n0_1x4(cfl32x4 value) { data32 = (ui32 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_255fx4)), _fpdt_shuffle8s); }
 
    operator cui32(void) const { return data32; }
-   operator cfl32x4(void) const {
-      return _mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu8_epi32(_mm_cvtsi32_si128(data32))), _fpdt_rcp255fx4);
-   }
+   operator cfl32x4(void) const { return _mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu8_epi32(_mm_cvtsi32_si128(data32))), _fpdt_rcp255fx4); }
 
    inline cfp8n0_1x4 operator<<(si32 &value) const { return fp8n0_1x4{ ui8(data8[0] << value), ui8(data8[1] << value), ui8(data8[2] << value), ui8(data8[3] << value) }; }
    inline cfp8n0_1x4 operator>>(si32 &value) const { return fp8n0_1x4{ ui8(data8[0] >> value), ui8(data8[1] >> value), ui8(data8[2] >> value), ui8(data8[3] >> value) }; }
@@ -1051,21 +1099,13 @@ struct fp8n0_1x4 {
 
    inline cfp8n0_1x4 operator+(cfp8n0_1x4 &value) const { return data32 + value.data32; }
    inline cfp8n0_1x4 operator-(cfp8n0_1x4 &value) const { return data32 - value.data32; }
-   inline cfp8n0_1x4 operator+(cfl32x4 &value) const {
-      return data32 + (ui32 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_255fx4)), _fpdt_shuffle8s);
-   }
-   inline cfp8n0_1x4 operator-(cfl32x4 &value) const {
-      return data32 - (ui32 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_255fx4)), _fpdt_shuffle8s);
-   }
+   inline cfp8n0_1x4 operator+(cfl32x4 &value) const { return data32 + (ui32 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_255fx4)), _fpdt_shuffle8s); }
+   inline cfp8n0_1x4 operator-(cfl32x4 &value) const { return data32 - (ui32 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_255fx4)), _fpdt_shuffle8s); }
 
    inline cfp8n0_1x4 operator+=(cfp8n0_1x4 &value) { return (data32 += value.data32); }
    inline cfp8n0_1x4 operator-=(cfp8n0_1x4 &value) { return (data32 -= value.data32); }
-   inline cfp8n0_1x4 operator+=(cfl32x4 &value) {
-      return (data32 += (ui32 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_255fx4)), _fpdt_shuffle8s));
-   }
-   inline cfp8n0_1x4 operator-=(cfl32x4 &value) {
-      return (data32 -= (ui32 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_255fx4)), _fpdt_shuffle8s));
-   }
+   inline cfp8n0_1x4 operator+=(cfl32x4 &value) { return (data32 += (ui32 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_255fx4)), _fpdt_shuffle8s)); }
+   inline cfp8n0_1x4 operator-=(cfl32x4 &value) { return (data32 -= (ui32 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_255fx4)), _fpdt_shuffle8s)); }
 };
 
 // 16-bit, 0.16 : Decimal range of 0.0~0.9999847412109375
@@ -1088,10 +1128,19 @@ struct f0p16 {
    inline cf0p16 operator--(void) { data--; return *this; }
    inline cf0p16 operator--(int) { cui16 temp = data--; return (cf0p16 &)temp; }
 
-   inline cf0p16 operator<<(si32 &value) const { return (cf0p16 &)(data << value); }
-   inline cf0p16 operator>>(si32 &value) const { return (cf0p16 &)(data >> value); }
-   inline cf0p16 operator<<=(si32 &value) { return (cf0p16 &)(data <<= value); }
-   inline cf0p16 operator>>=(si32 &value) { return (cf0p16 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui16 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui16 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui16 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui16 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui16 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui16 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui16 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui16 &)data; }
+
+   inline cf0p16 operator<<(csi32 &value) const { return (cf0p16 &)(data << value); }
+   inline cf0p16 operator>>(csi32 &value) const { return (cf0p16 &)(data >> value); }
+   inline cf0p16 operator<<=(csi32 &value) { return (cf0p16 &)(data <<= value); }
+   inline cf0p16 operator>>=(csi32 &value) { return (cf0p16 &)(data >>= value); }
 
    inline cf0p16 operator+(cf0p16 &value) const { return data + value.data; }
    inline cf0p16 operator-(cf0p16 &value) const { return data - value.data; }
@@ -1124,10 +1173,19 @@ struct fs1p14 {
    inline cfs1p14 operator--(void) { data--; return *this; }
    inline cfs1p14 operator--(int) { cui16 temp = data--; return (cfs1p14 &)temp; }
 
-   inline cfs1p14 operator<<(si32 &value) const { return (cfs1p14 &)(data << value); }
-   inline cfs1p14 operator>>(si32 &value) const { return (cfs1p14 &)(data >> value); }
-   inline cfs1p14 operator<<=(si32 &value) { return (cfs1p14 &)(data <<= value); }
-   inline cfs1p14 operator>>=(si32 &value) { return (cfs1p14 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui16 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui16 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui16 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui16 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui16 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui16 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui16 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui16 &)data; }
+
+   inline cfs1p14 operator<<(csi32 &value) const { return (cfs1p14 &)(data << value); }
+   inline cfs1p14 operator>>(csi32 &value) const { return (cfs1p14 &)(data >> value); }
+   inline cfs1p14 operator<<=(csi32 &value) { return (cfs1p14 &)(data <<= value); }
+   inline cfs1p14 operator>>=(csi32 &value) { return (cfs1p14 &)(data >>= value); }
 
    inline cfs1p14 operator+(cfs1p14 &value) const { return data + (value.data - 32768); }
    inline cfs1p14 operator-(cfs1p14 &value) const { return data - (value.data - 32768); }
@@ -1164,10 +1222,19 @@ struct f1p15 {
    inline cf1p15 operator--(void) { data--; return *this; }
    inline cf1p15 operator--(int) { cui16 temp = data--; return (cf1p15 &)temp; }
 
-   inline cf1p15 operator<<(si32 &value) const { return (cf1p15 &)(data << value); }
-   inline cf1p15 operator>>(si32 &value) const { return (cf1p15 &)(data >> value); }
-   inline cf1p15 operator<<=(si32 &value) { return (cf1p15 &)(data <<= value); }
-   inline cf1p15 operator>>=(si32 &value) { return (cf1p15 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui16 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui16 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui16 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui16 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui16 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui16 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui16 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui16 &)data; }
+
+   inline cf1p15 operator<<(csi32 &value) const { return (cf1p15 &)(data << value); }
+   inline cf1p15 operator>>(csi32 &value) const { return (cf1p15 &)(data >> value); }
+   inline cf1p15 operator<<=(csi32 &value) { return (cf1p15 &)(data <<= value); }
+   inline cf1p15 operator>>=(csi32 &value) { return (cf1p15 &)(data >>= value); }
 
    inline cf1p15 operator+(cf1p15 &value) const { return data + value.data; }
    inline cf1p15 operator-(cf1p15 &value) const { return data - value.data; }
@@ -1200,10 +1267,19 @@ struct f6p10 {
    inline cf6p10 operator--(void) { data--; return *this; }
    inline cf6p10 operator--(int) { cui16 temp = data--; return (cf6p10 &)temp; }
 
-   inline cf6p10 operator<<(si32 &value) const { return (cf6p10 &)(data << value); }
-   inline cf6p10 operator>>(si32 &value) const { return (cf6p10 &)(data >> value); }
-   inline cf6p10 operator<<=(si32 &value) { return (cf6p10 &)(data <<= value); }
-   inline cf6p10 operator>>=(si32 &value) { return (cf6p10 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui16 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui16 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui16 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui16 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui16 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui16 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui16 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui16 &)data; }
+
+   inline cf6p10 operator<<(csi32 &value) const { return (cf6p10 &)(data << value); }
+   inline cf6p10 operator>>(csi32 &value) const { return (cf6p10 &)(data >> value); }
+   inline cf6p10 operator<<=(csi32 &value) { return (cf6p10 &)(data <<= value); }
+   inline cf6p10 operator>>=(csi32 &value) { return (cf6p10 &)(data >>= value); }
 
    inline cf6p10 operator+(cf6p10 &value) const { return data + value.data; }
    inline cf6p10 operator-(cf6p10 &value) const { return data - value.data; }
@@ -1236,10 +1312,19 @@ struct fs7p8 {
    inline cfs7p8 operator--(void) { data--; return *this; }
    inline cfs7p8 operator--(int) { cui16 temp = data--; return (cfs7p8 &)temp; }
 
-   inline cfs7p8 operator<<(si32 &value) const { return (cfs7p8 &)(data << value); }
-   inline cfs7p8 operator>>(si32 &value) const { return (cfs7p8 &)(data >> value); }
-   inline cfs7p8 operator<<=(si32 &value) { return (cfs7p8 &)(data <<= value); }
-   inline cfs7p8 operator>>=(si32 &value) { return (cfs7p8 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui16 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui16 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui16 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui16 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui16 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui16 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui16 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui16 &)data; }
+
+   inline cfs7p8 operator<<(csi32 &value) const { return (cfs7p8 &)(data << value); }
+   inline cfs7p8 operator>>(csi32 &value) const { return (cfs7p8 &)(data >> value); }
+   inline cfs7p8 operator<<=(csi32 &value) { return (cfs7p8 &)(data <<= value); }
+   inline cfs7p8 operator>>=(csi32 &value) { return (cfs7p8 &)(data >>= value); }
 
    inline cfs7p8 operator+(cfs7p8 &value) const { return data + (value.data - 32768); }
    inline cfs7p8 operator-(cfs7p8 &value) const { return data - (value.data - 32768); }
@@ -1276,10 +1361,19 @@ struct f7p9 {
    inline cf7p9 operator--(void) { data--; return *this; }
    inline cf7p9 operator--(int) { cui16 temp = data--; return (cf7p9 &)temp; }
 
-   inline cf7p9 operator<<(si32 &value) const { return (cf7p9 &)(data << value); }
-   inline cf7p9 operator>>(si32 &value) const { return (cf7p9 &)(data >> value); }
-   inline cf7p9 operator<<=(si32 &value) { return (cf7p9 &)(data <<= value); }
-   inline cf7p9 operator>>=(si32 &value) { return (cf7p9 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui16 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui16 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui16 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui16 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui16 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui16 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui16 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui16 &)data; }
+
+   inline cf7p9 operator<<(csi32 &value) const { return (cf7p9 &)(data << value); }
+   inline cf7p9 operator>>(csi32 &value) const { return (cf7p9 &)(data >> value); }
+   inline cf7p9 operator<<=(csi32 &value) { return (cf7p9 &)(data <<= value); }
+   inline cf7p9 operator>>=(csi32 &value) { return (cf7p9 &)(data >>= value); }
 
    inline cf7p9 operator+(cf7p9 &value) const { return data + value.data; }
    inline cf7p9 operator-(cf7p9 &value) const { return data - value.data; }
@@ -1312,10 +1406,19 @@ struct f8p8 {
    inline cf8p8 operator--(void) { data--; return *this; }
    inline cf8p8 operator--(int) { cui16 temp = data--; return (cf8p8 &)temp; }
 
-   inline cf8p8 operator<<(si32 &value) const { return (cf8p8 &)(data << value); }
-   inline cf8p8 operator>>(si32 &value) const { return (cf8p8 &)(data >> value); }
-   inline cf8p8 operator<<=(si32 &value) { return (cf8p8 &)(data <<= value); }
-   inline cf8p8 operator>>=(si32 &value) { return (cf8p8 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui16 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui16 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui16 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui16 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui16 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui16 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui16 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui16 &)data; }
+
+   inline cf8p8 operator<<(csi32 &value) const { return (cf8p8 &)(data << value); }
+   inline cf8p8 operator>>(csi32 &value) const { return (cf8p8 &)(data >> value); }
+   inline cf8p8 operator<<=(csi32 &value) { return (cf8p8 &)(data <<= value); }
+   inline cf8p8 operator>>=(csi32 &value) { return (cf8p8 &)(data >>= value); }
 
    inline cf8p8 operator+(cf8p8 &value) const { return data + value.data; }
    inline cf8p8 operator-(cf8p8 &value) const { return data - value.data; }
@@ -1348,10 +1451,19 @@ struct fp16n0_1 {
    inline cfp16n0_1 operator--(void) { data--; return *this; }
    inline cfp16n0_1 operator--(int) { cui16 temp = data--; return (cfp16n0_1 &)temp; }
 
-   inline cfp16n0_1 operator<<(si32 &value) const { return (cfp16n0_1 &)(data << value); }
-   inline cfp16n0_1 operator>>(si32 &value) const { return (cfp16n0_1 &)(data >> value); }
-   inline cfp16n0_1 operator<<=(si32 &value) { return (cfp16n0_1 &)(data <<= value); }
-   inline cfp16n0_1 operator>>=(si32 &value) { return (cfp16n0_1 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui16 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui16 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui16 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui16 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui16 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui16 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui16 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui16 &)data; }
+
+   inline cfp16n0_1 operator<<(csi32 &value) const { return (cfp16n0_1 &)(data << value); }
+   inline cfp16n0_1 operator>>(csi32 &value) const { return (cfp16n0_1 &)(data >> value); }
+   inline cfp16n0_1 operator<<=(csi32 &value) { return (cfp16n0_1 &)(data <<= value); }
+   inline cfp16n0_1 operator>>=(csi32 &value) { return (cfp16n0_1 &)(data >>= value); }
 
    inline cfp16n0_1 operator+(cfp16n0_1 &value) const { return data + value.data; }
    inline cfp16n0_1 operator-(cfp16n0_1 &value) const { return data - value.data; }
@@ -1384,10 +1496,19 @@ struct fp16n0_2 {
    inline cfp16n0_2 operator--(void) { data--; return *this; }
    inline cfp16n0_2 operator--(int) { cui16 temp = data--; return (cfp16n0_2 &)temp; }
 
-   inline cfp16n0_2 operator<<(si32 &value) const { return (cfp16n0_2 &)(data << value); }
-   inline cfp16n0_2 operator>>(si32 &value) const { return (cfp16n0_2 &)(data >> value); }
-   inline cfp16n0_2 operator<<=(si32 &value) { return (cfp16n0_2 &)(data <<= value); }
-   inline cfp16n0_2 operator>>=(si32 &value) { return (cfp16n0_2 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui16 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui16 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui16 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui16 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui16 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui16 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui16 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui16 &)data; }
+
+   inline cfp16n0_2 operator<<(csi32 &value) const { return (cfp16n0_2 &)(data << value); }
+   inline cfp16n0_2 operator>>(csi32 &value) const { return (cfp16n0_2 &)(data >> value); }
+   inline cfp16n0_2 operator<<=(csi32 &value) { return (cfp16n0_2 &)(data <<= value); }
+   inline cfp16n0_2 operator>>=(csi32 &value) { return (cfp16n0_2 &)(data >>= value); }
 
    inline cfp16n0_2 operator+(cfp16n0_2 &value) const { return data + value.data; }
    inline cfp16n0_2 operator-(cfp16n0_2 &value) const { return data - value.data; }
@@ -1420,10 +1541,19 @@ struct fp16n0_128 {
    inline cfp16n0_128 operator--(void) { data--; return *this; }
    inline cfp16n0_128 operator--(int) { cui16 temp = data--; return (cfp16n0_128 &)temp; }
 
-   inline cfp16n0_128 operator<<(si32 &value) const { return (cfp16n0_128 &)(data << value); }
-   inline cfp16n0_128 operator>>(si32 &value) const { return (cfp16n0_128 &)(data >> value); }
-   inline cfp16n0_128 operator<<=(si32 &value) { return (cfp16n0_128 &)(data <<= value); }
-   inline cfp16n0_128 operator>>=(si32 &value) { return (cfp16n0_128 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui16 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui16 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui16 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui16 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui16 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui16 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui16 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui16 &)data; }
+
+   inline cfp16n0_128 operator<<(csi32 &value) const { return (cfp16n0_128 &)(data << value); }
+   inline cfp16n0_128 operator>>(csi32 &value) const { return (cfp16n0_128 &)(data >> value); }
+   inline cfp16n0_128 operator<<=(csi32 &value) { return (cfp16n0_128 &)(data <<= value); }
+   inline cfp16n0_128 operator>>=(csi32 &value) { return (cfp16n0_128 &)(data >>= value); }
 
    inline cfp16n0_128 operator+(cfp16n0_128 &value) const { return data + value.data; }
    inline cfp16n0_128 operator-(cfp16n0_128 &value) const { return data - value.data; }
@@ -1456,10 +1586,19 @@ struct fp16n_1_1 {
    inline cfp16n_1_1 operator--(void) { data--; return *this; }
    inline cfp16n_1_1 operator--(int) { cui16 temp = data--; return (cfp16n_1_1 &)temp; }
 
-   inline cfp16n_1_1 operator<<(si32 &value) const { return (cfp16n_1_1 &)(data << value); }
-   inline cfp16n_1_1 operator>>(si32 &value) const { return (cfp16n_1_1 &)(data >> value); }
-   inline cfp16n_1_1 operator<<=(si32 &value) { return (cfp16n_1_1 &)(data <<= value); }
-   inline cfp16n_1_1 operator>>=(si32 &value) { return (cfp16n_1_1 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui16 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui16 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui16 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui16 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui16 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui16 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui16 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui16 &)data; }
+
+   inline cfp16n_1_1 operator<<(csi32 &value) const { return (cfp16n_1_1 &)(data << value); }
+   inline cfp16n_1_1 operator>>(csi32 &value) const { return (cfp16n_1_1 &)(data >> value); }
+   inline cfp16n_1_1 operator<<=(csi32 &value) { return (cfp16n_1_1 &)(data <<= value); }
+   inline cfp16n_1_1 operator>>=(csi32 &value) { return (cfp16n_1_1 &)(data >>= value); }
 
    inline cfp16n_1_1 operator+(cfp16n_1_1 &value) const { return data + (value.data - 32767); }
    inline cfp16n_1_1 operator-(cfp16n_1_1 &value) const { return data - (value.data - 32767); }
@@ -1492,10 +1631,19 @@ struct fp16n_128_128 {
    inline cfp16n_128_128 operator--(void) { data--; return *this; }
    inline cfp16n_128_128 operator--(int) { cui16 temp = data--; return (cfp16n_128_128 &)temp; }
 
-   inline cfp16n_128_128 operator<<(si32 &value) const { return (cfp16n_128_128 &)(data << value); }
-   inline cfp16n_128_128 operator>>(si32 &value) const { return (cfp16n_128_128 &)(data >> value); }
-   inline cfp16n_128_128 operator<<=(si32 &value) { return (cfp16n_128_128 &)(data <<= value); }
-   inline cfp16n_128_128 operator>>=(si32 &value) { return (cfp16n_128_128 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui16 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui16 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui16 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui16 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui16 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui16 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui16 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui16 &)data; }
+
+   inline cfp16n_128_128 operator<<(csi32 &value) const { return (cfp16n_128_128 &)(data << value); }
+   inline cfp16n_128_128 operator>>(csi32 &value) const { return (cfp16n_128_128 &)(data >> value); }
+   inline cfp16n_128_128 operator<<=(csi32 &value) { return (cfp16n_128_128 &)(data <<= value); }
+   inline cfp16n_128_128 operator>>=(csi32 &value) { return (cfp16n_128_128 &)(data >>= value); }
 
    inline cfp16n_128_128 operator+(cfp16n_128_128 &value) const { return data + (value.data - 32767); }
    inline cfp16n_128_128 operator-(cfp16n_128_128 &value) const { return data - (value.data - 32767); }
@@ -1510,32 +1658,25 @@ struct fp16n_128_128 {
 
 // 4x 16-bit, 1.15 : Decimal range of 0.0~1.999969482421875
 struct f1p15x4 {
-   typedef const f1p15x4 cf1p15x4;
+   typedef const f1p15 cf1p15; typedef const f1p15x4 cf1p15x4;
 
-   union {
-      ui64  data64;
-      f1p15 data[4];
-      ui16  data16[4];
-   };
+   union { ui64 data64; f1p15 data[4]; ui16 data16[4]; };
 
    f1p15x4(void) = default;
-   f1p15x4(f1p15 value, cui16 index) { data[index] = value; }
+   f1p15x4(cf1p15 value, cui16 index) { data[index] = value; }
    f1p15x4(cui16 value, cui16 index) { data16[index] = value; }
    f1p15x4(cfl32 value, cui16 index) { data16[index] = ui16(value * 32768.0f); }
-   f1p15x4(f1p15 (&value)[4]) { data64 = (ui64 &)value; }
+   f1p15x4(cf1p15 (&value)[4]) { data64 = (ui64 &)value; }
    f1p15x4(cui16 (&value)[4]) { data64 = (ui64 &)value; }
+   f1p15x4(cf1p15 value) { data[0] = data[1] = data[2] = data[3] = value; }
+   f1p15x4(cui16 value) { data16[0] = data16[1] = data16[2] = data16[3] = value; }
    f1p15x4(cui64 value) { data64 = value; }
-   f1p15x4(cui16 value0, cui16 value1, cui16 value2, cui16 value3) {
-      data16[0] = value0; data16[1] = value1; data16[2] = value2; data16[3] = value3;
-   }
-   f1p15x4(cfl32x4 value) {
-      data64 = (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_32768fx4)), _fpdt_shuffle16s);
-   }
+   f1p15x4(cui16 value0, cui16 value1, cui16 value2, cui16 value3) { data16[0] = value0; data16[1] = value1; data16[2] = value2; data16[3] = value3; }
+   f1p15x4(cfl32 value) { cui16 temp = ui16(value * 65535.0f); data16[0] = data16[1] = data16[2] = data16[3] = temp; }
+   f1p15x4(cfl32x4 value) { data64 = (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_32768fx4)), _fpdt_shuffle16s); }
 
    operator cui64(void) const { return data64; }
-   operator cfl32x4(void) const {
-      return _mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu8_epi32(_mm_cvtsi64_si128(data64))), _fpdt_rcp255fx4);
-   }
+   operator cfl32x4(void) const { return _mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu8_epi32(_mm_cvtsi64_si128(data64))), _fpdt_rcp255fx4); }
 
    inline cf1p15x4 &operator&(void) const { return *this; }
    inline cf1p15x4 &operator&(cui64 &value) const { return (cf1p15x4 &)value; }
@@ -1552,32 +1693,20 @@ struct f1p15x4 {
 
    inline cf1p15x4 operator+(cf1p15x4 &value) const { return data64 + value.data64; }
    inline cf1p15x4 operator-(cf1p15x4 &value) const { return data64 - value.data64; }
-   inline cf1p15x4 operator+(cfl32x4 &value) const {
-      return data64 + (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_32768fx4)), _fpdt_shuffle16s);
-   }
-   inline cf1p15x4 operator-(cfl32x4 &value) const {
-      return data64 - (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_32768fx4)), _fpdt_shuffle16s);
-   }
+   inline cf1p15x4 operator+(cfl32x4 &value) const { return data64 + (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_32768fx4)), _fpdt_shuffle16s); }
+   inline cf1p15x4 operator-(cfl32x4 &value) const { return data64 - (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_32768fx4)), _fpdt_shuffle16s); }
 
    inline cf1p15x4 operator+=(cf1p15x4 &value) { return (data64 += value.data64); }
    inline cf1p15x4 operator-=(cf1p15x4 &value) { return (data64 -= value.data64); }
-   inline cf1p15x4 operator+=(cfl32x4 &value) {
-      return (data64 += (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_32768fx4)), _fpdt_shuffle16s));
-   }
-   inline cf1p15x4 operator-=(cfl32x4 &value) {
-      return (data64 -= (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_32768fx4)), _fpdt_shuffle16s));
-   }
+   inline cf1p15x4 operator+=(cfl32x4 &value) { return (data64 += (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_32768fx4)), _fpdt_shuffle16s)); }
+   inline cf1p15x4 operator-=(cfl32x4 &value) { return (data64 -= (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_32768fx4)), _fpdt_shuffle16s)); }
 };
 
 // 4x normalised 16-bit : Decimal ranges of 0.0~1.0
 struct fp16n0_1x4 {
-   typedef const fp16n0_1x4 cfp16n0_1x4;
+   typedef const fp16n0_1 cfp16n0_1; typedef const fp16n0_1x4 cfp16n0_1x4;
 
-   union {
-      ui64     data64;
-      fp16n0_1 data[4];
-      ui16     data16[4];
-   };
+   union { ui64 data64; fp16n0_1 data[4]; ui16 data16[4]; };
 
    fp16n0_1x4(void) = default;
    fp16n0_1x4(fp16n0_1 value, cui16 index) { data[index] = value; }
@@ -1585,18 +1714,15 @@ struct fp16n0_1x4 {
    fp16n0_1x4(cfl32 value, cui16 index) { data16[index] = ui16(value * 65535.0f); }
    fp16n0_1x4(fp16n0_1 (&value)[4]) { data64 = (ui64 &)value; }
    fp16n0_1x4(cui16 (&value)[4]) { data64 = (ui64 &)value; }
+   fp16n0_1x4(cfp16n0_1 value) { data[0] = data[1] = data[2] = data[3] = value; }
+   fp16n0_1x4(cui16 value) { data16[0] = data16[1] = data16[2] = data16[3] = value; }
    fp16n0_1x4(cui64 value) { data64 = value; }
-   fp16n0_1x4(cui16 value0, cui16 value1, cui16 value2, cui16 value3) {
-      data16[0] = value0; data16[1] = value1; data16[2] = value2; data16[3] = value3;
-   }
-   fp16n0_1x4(cfl32x4 value) {
-      data64 = (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_65535fx4)), _fpdt_shuffle16s);
-   }
+   fp16n0_1x4(cui16 value0, cui16 value1, cui16 value2, cui16 value3) { data16[0] = value0; data16[1] = value1; data16[2] = value2; data16[3] = value3; }
+   fp16n0_1x4(cfl32 value) { cui16 temp = ui16(value * 65535.0f); data16[0] = data16[1] = data16[2] = data16[3] = temp; }
+   fp16n0_1x4(cfl32x4 value) { data64 = (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_65535fx4)), _fpdt_shuffle16s); }
 
    operator cui64(void) const { return data64; }
-   operator cfl32x4(void) const {
-      return _mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu8_epi32(_mm_cvtsi64_si128(data64))), _fpdt_rcp255fx4);
-   }
+   operator cfl32x4(void) const { return _mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu8_epi32(_mm_cvtsi64_si128(data64))), _fpdt_rcp255fx4); }
 
    inline cfp16n0_1x4 operator++(void) { data16[0]++; data16[1]++; data16[2]++; data16[3]++; return *this; }
    inline cfp16n0_1x4 operator++(int) { al8 cui16 temp[4] = { data16[0]++, data16[1]++, data16[2]++, data16[3]++ }; return (cfp16n0_1x4 &)temp; }
@@ -1610,21 +1736,13 @@ struct fp16n0_1x4 {
 
    inline cfp16n0_1x4 operator+(cfp16n0_1x4 &value) const { return data64 + value.data64; }
    inline cfp16n0_1x4 operator-(cfp16n0_1x4 &value) const { return data64 - value.data64; }
-   inline cfp16n0_1x4 operator+(cfl32x4 &value) const {
-      return data64 + (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_65535fx4)), _fpdt_shuffle16s);
-   }
-   inline cfp16n0_1x4 operator-(cfl32x4 &value) const {
-      return data64 - (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_65535fx4)), _fpdt_shuffle16s);
-   }
+   inline cfp16n0_1x4 operator+(cfl32x4 &value) const { return data64 + (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_65535fx4)), _fpdt_shuffle16s); }
+   inline cfp16n0_1x4 operator-(cfl32x4 &value) const { return data64 - (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_65535fx4)), _fpdt_shuffle16s); }
 
    inline cfp16n0_1x4 operator+=(cfp16n0_1x4 &value) { return (data64 += value.data64); }
    inline cfp16n0_1x4 operator-=(cfp16n0_1x4 &value) { return (data64 -= value.data64); }
-   inline cfp16n0_1x4 operator+=(cfl32x4 &value) {
-      return (data64 += (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_65535fx4)), _fpdt_shuffle16s));
-   }
-   inline cfp16n0_1x4 operator-=(cfl32x4 &value) {
-      return (data64 -= (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_65535fx4)), _fpdt_shuffle16s));
-   }
+   inline cfp16n0_1x4 operator+=(cfl32x4 &value) { return (data64 += (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_65535fx4)), _fpdt_shuffle16s)); }
+   inline cfp16n0_1x4 operator-=(cfl32x4 &value) { return (data64 -= (ui64 &)_mm_shuffle_epi8(_mm_cvttps_epi32(_mm_mul_ps(value, _fpdt_65535fx4)), _fpdt_shuffle16s)); }
 };
 
 #ifdef _24BIT_INTEGERS_
@@ -1649,10 +1767,19 @@ struct f8p16 {
    inline cf8p16 operator--(void) { data--; return *this; }
    inline cf8p16 operator--(int) { cui24 temp = data--; return (cf8p16 &)temp; }
 
-   inline cf8p16 operator<<(si32 &value) const { return (cf8p16 &)(data << value); }
-   inline cf8p16 operator>>(si32 &value) const { return (cf8p16 &)(data >> value); }
-   inline cf8p16 operator<<=(si32 &value) { return (cf8p16 &)(data <<= value); }
-   inline cf8p16 operator>>=(si32 &value) { return (cf8p16 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui24 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui24 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui24 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui24 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui24 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui24 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui24 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui24 &)data; }
+
+   inline cf8p16 operator<<(csi32 &value) const { return (cf8p16 &)(data << value); }
+   inline cf8p16 operator>>(csi32 &value) const { return (cf8p16 &)(data >> value); }
+   inline cf8p16 operator<<=(csi32 &value) { return (cf8p16 &)(data <<= value); }
+   inline cf8p16 operator>>=(csi32 &value) { return (cf8p16 &)(data >>= value); }
 
    inline cf8p16 operator+(cf8p16 &value) const { return data + value.data; }
    inline cf8p16 operator-(cf8p16 &value) const { return data - value.data; }
@@ -1685,10 +1812,19 @@ struct f12p12 {
    inline cf12p12 operator--(void) { data--; return *this; }
    inline cf12p12 operator--(int) { cui24 temp = data--; return (cf12p12 &)temp; }
 
-   inline cf12p12 operator<<(si32 &value) const { return (cf12p12 &)(data << value); }
-   inline cf12p12 operator>>(si32 &value) const { return (cf12p12 &)(data >> value); }
-   inline cf12p12 operator<<=(si32 &value) { return (cf12p12 &)(data <<= value); }
-   inline cf12p12 operator>>=(si32 &value) { return (cf12p12 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui24 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui24 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui24 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui24 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui24 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui24 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui24 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui24 &)data; }
+
+   inline cf12p12 operator<<(csi32 &value) const { return (cf12p12 &)(data << value); }
+   inline cf12p12 operator>>(csi32 &value) const { return (cf12p12 &)(data >> value); }
+   inline cf12p12 operator<<=(csi32 &value) { return (cf12p12 &)(data <<= value); }
+   inline cf12p12 operator>>=(csi32 &value) { return (cf12p12 &)(data >>= value); }
 
    inline cf12p12 operator+(cf12p12 &value) const { return data + value.data; }
    inline cf12p12 operator-(cf12p12 &value) const { return data - value.data; }
@@ -1721,10 +1857,19 @@ struct f16p8 {
    inline cf16p8 operator--(void) { data--; return *this; }
    inline cf16p8 operator--(int) { cui24 temp = data--; return (cf16p8 &)temp; }
 
-   inline cf16p8 operator<<(si32 &value) const { return (cf16p8 &)(data << value); }
-   inline cf16p8 operator>>(si32 &value) const { return (cf16p8 &)(data >> value); }
-   inline cf16p8 operator<<=(si32 &value) { return (cf16p8 &)(data <<= value); }
-   inline cf16p8 operator>>=(si32 &value) { return (cf16p8 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui24 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui24 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui24 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui24 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui24 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui24 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui24 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui24 &)data; }
+
+   inline cf16p8 operator<<(csi32 &value) const { return (cf16p8 &)(data << value); }
+   inline cf16p8 operator>>(csi32 &value) const { return (cf16p8 &)(data >> value); }
+   inline cf16p8 operator<<=(csi32 &value) { return (cf16p8 &)(data <<= value); }
+   inline cf16p8 operator>>=(csi32 &value) { return (cf16p8 &)(data >>= value); }
 
    inline cf16p8 operator+(cf16p8 &value) const { return data + value.data; }
    inline cf16p8 operator-(cf16p8 &value) const { return data - value.data; }
@@ -1757,10 +1902,19 @@ struct fp24n0_1 {
    inline cfp24n0_1 operator--(void) { data--; return *this; }
    inline cfp24n0_1 operator--(int) { cui16 temp = data--; return (cfp24n0_1 &)temp; }
 
-   inline cfp24n0_1 operator<<(si32 &value) const { return (cfp24n0_1 &)(data << value); }
-   inline cfp24n0_1 operator>>(si32 &value) const { return (cfp24n0_1 &)(data >> value); }
-   inline cfp24n0_1 operator<<=(si32 &value) { return (cfp24n0_1 &)(data <<= value); }
-   inline cfp24n0_1 operator>>=(si32 &value) { return (cfp24n0_1 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui24 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui24 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui24 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui24 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui24 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui24 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui24 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui24 &)data; }
+
+   inline cfp24n0_1 operator<<(csi32 &value) const { return (cfp24n0_1 &)(data << value); }
+   inline cfp24n0_1 operator>>(csi32 &value) const { return (cfp24n0_1 &)(data >> value); }
+   inline cfp24n0_1 operator<<=(csi32 &value) { return (cfp24n0_1 &)(data <<= value); }
+   inline cfp24n0_1 operator>>=(csi32 &value) { return (cfp24n0_1 &)(data >>= value); }
 
    inline cfp24n0_1 operator+(cfp24n0_1 &value) const { cui24 temp = data + value.data; return (cfp24n0_1 &)temp; }
    inline cfp24n0_1 operator-(cfp24n0_1 &value) const { cui24 temp = data - value.data; return (cfp24n0_1 &)temp; }
@@ -1794,10 +1948,19 @@ struct f0p32 {
    inline cf0p32 operator--(void) { data--; return *this; }
    inline cf0p32 operator--(int) { cui32 temp = data--; return (cf0p32 &)temp; }
 
-   inline cf0p32 operator<<(si32 &value) const { return (cf0p32 &)(data << value); }
-   inline cf0p32 operator>>(si32 &value) const { return (cf0p32 &)(data >> value); }
-   inline cf0p32 operator<<=(si32 &value) { return (cf0p32 &)(data <<= value); }
-   inline cf0p32 operator>>=(si32 &value) { return (cf0p32 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui32 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui32 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui32 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui32 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui32 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui32 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui32 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui32 &)data; }
+
+   inline cf0p32 operator<<(csi32 &value) const { return (cf0p32 &)(data << value); }
+   inline cf0p32 operator>>(csi32 &value) const { return (cf0p32 &)(data >> value); }
+   inline cf0p32 operator<<=(csi32 &value) { return (cf0p32 &)(data <<= value); }
+   inline cf0p32 operator>>=(csi32 &value) { return (cf0p32 &)(data >>= value); }
 
    inline cf0p32 operator+(cf0p32 &value) const { return data + value.data; }
    inline cf0p32 operator-(cf0p32 &value) const { return data - value.data; }
@@ -1829,10 +1992,19 @@ struct f16p16 {
    inline cf16p16 operator--(void) { data--; return *this; }
    inline cf16p16 operator--(int) { cui32 temp = data--; return (cf16p16 &)temp; }
 
-   inline cf16p16 operator<<(si32 &value) const { return (cf16p16 &)(data << value); }
-   inline cf16p16 operator>>(si32 &value) const { return (cf16p16 &)(data >> value); }
-   inline cf16p16 operator<<=(si32 &value) { return (cf16p16 &)(data <<= value); }
-   inline cf16p16 operator>>=(si32 &value) { return (cf16p16 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui32 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui32 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui32 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui32 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui32 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui32 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui32 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui32 &)data; }
+
+   inline cf16p16 operator<<(csi32 &value) const { return (cf16p16 &)(data << value); }
+   inline cf16p16 operator>>(csi32 &value) const { return (cf16p16 &)(data >> value); }
+   inline cf16p16 operator<<=(csi32 &value) { return (cf16p16 &)(data <<= value); }
+   inline cf16p16 operator>>=(csi32 &value) { return (cf16p16 &)(data >>= value); }
 
    inline cf16p16 operator+(cf16p16 &value) const { return data + value.data; }
    inline cf16p16 operator-(cf16p16 &value) const { return data - value.data; }
@@ -1864,10 +2036,19 @@ struct fp32n0_1 {
    inline cfp32n0_1 operator--(void) { data--; return *this; }
    inline cfp32n0_1 operator--(int) { cui32 temp = data--; return (cfp32n0_1 &)temp; }
 
-   inline cfp32n0_1 operator<<(si32 &value) const { return (cfp32n0_1 &)(data << value); }
-   inline cfp32n0_1 operator>>(si32 &value) const { return (cfp32n0_1 &)(data >> value); }
-   inline cfp32n0_1 operator<<=(si32 &value) { return (cfp32n0_1 &)(data <<= value); }
-   inline cfp32n0_1 operator>>=(si32 &value) { return (cfp32n0_1 &)(data >>= value); }
+   inline cbool operator==(csi32 &value) const { return data == (ui32 &)data; }
+   inline cbool operator!=(csi32 &value) const { return data != (ui32 &)data; }
+   inline cbool operator>=(csi32 &value) const { return data >= (ui32 &)data; }
+   inline cbool operator<=(csi32 &value) const { return data <= (ui32 &)data; }
+   inline cbool operator>(csi32 &value) const { return data > (ui32 &)data; }
+   inline cbool operator<(csi32 &value) const { return data < (ui32 &)data; }
+   inline cbool operator||(csi32 &value) const { return data || (ui32 &)data; }
+   inline cbool operator&&(csi32 &value) const { return data && (ui32 &)data; }
+
+   inline cfp32n0_1 operator<<(csi32 &value) const { return (cfp32n0_1 &)(data << value); }
+   inline cfp32n0_1 operator>>(csi32 &value) const { return (cfp32n0_1 &)(data >> value); }
+   inline cfp32n0_1 operator<<=(csi32 &value) { return (cfp32n0_1 &)(data <<= value); }
+   inline cfp32n0_1 operator>>=(csi32 &value) { return (cfp32n0_1 &)(data >>= value); }
 
    inline cfp32n0_1 operator+(cfp32n0_1 &value) const { return data + value.data; }
    inline cfp32n0_1 operator-(cfp32n0_1 &value) const { return data - value.data; }
@@ -1915,7 +2096,7 @@ typedef const fp16n0_1x4    cfp16n0_1x4;    // 4x normalised 16-bit : Decimal ra
 typedef const f8p16    cf8p16;    // 24-bit, 8.16 : Decimal range of 0.0~255.9999847412109375
 typedef const f12p12   cf12p12;   // 24-bit, 12.12 : Decimal range of 0.0~4095.999755859375
 typedef const f16p8    cf16p8;    // 24-bit, 16.8 : Decimal range of 0.0~65535.99609375
-typedef const fp24n0_1 cfp24n0_1; // Normalised 224bit : Decimal range of 0.0~1.0
+typedef const fp24n0_1 cfp24n0_1; // Normalised 24-bit : Decimal range of 0.0~1.0
 
 typedef const f0p32    cf0p32;    // 32-bit, 0.32 : Decimal range of 0.0~0.99999999976716935634613037109375
 typedef const f16p16   cf16p16;   // 32-bit, 16.16 : Decimal range of 0.0~65535.9999847412109375
