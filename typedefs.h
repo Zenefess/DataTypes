@@ -26,6 +26,7 @@
 #define al8  __declspec(align(8))
 #define al16 __declspec(align(16))
 #define al32 __declspec(align(32))
+#define al64 __declspec(align(64))
 
 #define vol volatile
 

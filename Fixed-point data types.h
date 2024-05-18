@@ -202,12 +202,10 @@ struct fp8nx4 {
    }
 
    inline cfl32x4 toFloat4(void) const {
-//      cui128 temp = _mm_cvtsi32_si128(data32);
       return _mm_add_ps(_mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu8_epi32(_mm_cvtsi32_si128(data32))), _mm_set_ps1(rangeDivMax8)), _mm_set_ps1(origin8));
    };
 
    inline cfl32x4 toFloat4(cfp8nx4 &value) const {
-//      cui128 temp = _mm_cvtsi32_si128(value.data32);
       return _mm_add_ps(_mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu8_epi32(_mm_cvtsi32_si128(value.data32))), _mm_set_ps1(rangeDivMax8)), _mm_set_ps1(origin8));
    };
 
@@ -486,12 +484,10 @@ struct fp16nx4 {
    }
 
    inline cfl32x4 toFloat4(void) const {
-//      cui128 temp = _mm_cvtsi64_si128(data64);
       return _mm_add_ps(_mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu16_epi32(_mm_cvtsi64_si128(data64))), _mm_set_ps1(rangeDivMax16)), _mm_set_ps1(origin16));
    };
 
    inline cfl32x4 toFloat4(cfp16nx4 &value) const {
-//      cui128 temp = _mm_cvtsi64_si128(value.data64);
       return _mm_add_ps(_mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu16_epi32(_mm_cvtsi64_si128(value.data64))), _mm_set_ps1(rangeDivMax16)), _mm_set_ps1(origin16));
    };
 
@@ -1040,7 +1036,6 @@ struct fp8n0_1x4 {
 
    operator cui32(void) const { return data32; }
    operator cfl32x4(void) const {
-//      cui128 temp = _mm_cvtsi32_si128(data32);
       return _mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu8_epi32(_mm_cvtsi32_si128(data32))), _fpdt_rcp255fx4);
    }
 
@@ -1539,7 +1534,6 @@ struct f1p15x4 {
 
    operator cui64(void) const { return data64; }
    operator cfl32x4(void) const {
-//      cui128 temp = _mm_cvtsi64_si128(data64);
       return _mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu8_epi32(_mm_cvtsi64_si128(data64))), _fpdt_rcp255fx4);
    }
 
@@ -1601,7 +1595,6 @@ struct fp16n0_1x4 {
 
    operator cui64(void) const { return data64; }
    operator cfl32x4(void) const {
-//      cui128 temp = _mm_cvtsi64_si128(data64);
       return _mm_mul_ps(_mm_cvtepu32_ps(_mm_cvtepu8_epi32(_mm_cvtsi64_si128(data64))), _fpdt_rcp255fx4);
    }
 
@@ -1912,8 +1905,8 @@ typedef const fs7p8         cfs7p8;         // 16-bit, signed 7.8 : Decimal rang
 typedef const f7p9          cf7p9;          // 16-bit, 7.9 : Decimal range of 0.0~127.998046875
 typedef const f8p8          cf8p8;          // 16-bit, 8.8 : Decimal range of 0.0~255.99609375
 typedef const fp16n0_1      cfp16n0_1;      // Normalised 16-bit : Decimal range of 0.0~1.0
-typedef const fp16n0_2      cfp16n0_2;      // Normalised 16-bit : Decimal range of 0.0~2.0
 typedef const fp16n_1_1     cfp16n_1_1;     // Normalised 16-bit : Decimal range of -1.0~1.0
+typedef const fp16n0_2      cfp16n0_2;      // Normalised 16-bit : Decimal range of 0.0~2.0
 typedef const fp16n0_128    cfp16n0_128;    // Normalised 16-bit : Decimal range of 0.0~128.0
 typedef const fp16n_128_128 cfp16n_128_128; // Normalised 16-bit : Decimal range of -128.0~128.0
 typedef const f1p15x4       cf1p15x4;       // 4x 16-bit, 1.15 : Decimal range of 0.0~1.999969482421875
