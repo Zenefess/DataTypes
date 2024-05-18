@@ -177,19 +177,19 @@ struct fp8n {
    inline cbool operator||(cfl32 &value) const { return data || toFixed(value).data; }
    inline cbool operator&&(cfl32 &value) const { return data && toFixed(value).data; }
 
-   inline cfp8n operator+(cfl32 &value) const { return (cfp8n &)(data + toFixedMod(value)); }
-   inline cfp8n operator-(cfl32 &value) const { return (cfp8n &)(data - toFixedMod(value)); }
-   inline cfp8n operator*(cfl32 &value) const { return toFixed(toFloat() * value); }
-   inline cfp8n operator/(cfl32 &value) const { return toFixed(toFloat() / value); }
-   inline cfp8n operator%(cfl32 &value) const { return (cfp8n &)(data % toFixedMod(value)); }
+   inline cfl32 operator+(cfl32 &value) const { return toFloat() + value; }
+   inline cfl32 operator-(cfl32 &value) const { return toFloat() - value; }
+   inline cfl32 operator*(cfl32 &value) const { return toFloat() * value; }
+   inline cfl32 operator/(cfl32 &value) const { return toFloat() / value; }
+   inline cfp8n operator%(cfl32 &value) const { return (cfp8n &)(data % toFixed(value).data); }
    inline cfp8n operator&(cfl32 &value) const { return (cfp8n &)(data & toFixed(value).data); }
    inline cfp8n operator|(cfl32 &value) const { return (cfp8n &)(data | toFixed(value).data); }
    inline cfp8n operator^(cfl32 &value) const { return (cfp8n &)(data ^ toFixed(value).data); }
-   inline cfp8n operator+=(cfl32 &value) { return (cfp8n &)(data += toFixedMod(value)); }
-   inline cfp8n operator-=(cfl32 &value) { return (cfp8n &)(data -= toFixedMod(value)); }
-   inline cfp8n operator*=(cfl32 &value) { return *this = toFixed(toFloat() * value); }
-   inline cfp8n operator/=(cfl32 &value) { return *this = toFixed(toFloat() / value); }
-   inline cfp8n operator%=(cfl32 &value) { return (cfp8n &)(data %= toFixedMod(value)); }
+   inline cfl32 operator+=(cfl32 &value) { cfl32 temp = toFloat() + value; *this = toFixed(temp); return temp; }
+   inline cfl32 operator-=(cfl32 &value) { cfl32 temp = toFloat() - value; *this = toFixed(temp); return temp; }
+   inline cfl32 operator*=(cfl32 &value) { cfl32 temp = toFloat() * value; *this = toFixed(temp); return temp; }
+   inline cfl32 operator/=(cfl32 &value) { cfl32 temp = toFloat() / value; *this = toFixed(temp); return temp; }
+   inline cfp8n operator%=(cfl32 &value) { return (cfp8n &)(data %= toFixed(value).data); }
    inline cfp8n operator&=(cfl32 &value) { return (cfp8n &)(data &= toFixed(value).data); }
    inline cfp8n operator|=(cfl32 &value) { return (cfp8n &)(data |= toFixed(value).data); }
    inline cfp8n operator^=(cfl32 &value) { return (cfp8n &)(data ^= toFixed(value).data); }
@@ -457,18 +457,18 @@ struct fp16n {
    inline cbool operator||(cfl32 &value) const { return data || toFixed(value).data; }
    inline cbool operator&&(cfl32 &value) const { return data && toFixed(value).data; }
 
-   inline cfp16n operator+(cfl32 &value) const { return (cfp16n &)(data + toFixedMod(value)); }
-   inline cfp16n operator-(cfl32 &value) const { return (cfp16n &)(data - toFixedMod(value)); }
-   inline cfp16n operator*(cfl32 &value) const { return toFixed(toFloat() * value); }
-   inline cfp16n operator/(cfl32 &value) const { return toFixed(toFloat() / value); }
+   inline cfl32 operator+(cfl32 &value) const { return toFloat() + value; }
+   inline cfl32 operator-(cfl32 &value) const { return toFloat() - value; }
+   inline cfl32 operator*(cfl32 &value) const { return toFloat() * value; }
+   inline cfl32 operator/(cfl32 &value) const { return toFloat() / value; }
    inline cfp16n operator%(cfl32 &value) const { return (cfp16n &)(data % toFixed(value).data); }
    inline cfp16n operator&(cfl32 &value) const { return (cfp16n &)(data & toFixed(value).data); }
    inline cfp16n operator|(cfl32 &value) const { return (cfp16n &)(data | toFixed(value).data); }
    inline cfp16n operator^(cfl32 &value) const { return (cfp16n &)(data ^ toFixed(value).data); }
-   inline cfp16n operator+=(cfl32 &value) { return (cfp16n &)(data += toFixedMod(value)); }
-   inline cfp16n operator-=(cfl32 &value) { return (cfp16n &)(data -= toFixedMod(value)); }
-   inline cfp16n operator*=(cfl32 &value) { return *this = toFixed(toFloat() * value); }
-   inline cfp16n operator/=(cfl32 &value) { return *this = toFixed(toFloat() / value); }
+   inline cfl32 operator+=(cfl32 &value) { cfl32 temp = toFloat() + value; *this = toFixed(temp); return temp; }
+   inline cfl32 operator-=(cfl32 &value) { cfl32 temp = toFloat() - value; *this = toFixed(temp); return temp; }
+   inline cfl32 operator*=(cfl32 &value) { cfl32 temp = toFloat() * value; *this = toFixed(temp); return temp; }
+   inline cfl32 operator/=(cfl32 &value) { cfl32 temp = toFloat() / value; *this = toFixed(temp); return temp; }
    inline cfp16n operator%=(cfl32 &value) { return (cfp16n &)(data %= toFixed(value).data); }
    inline cfp16n operator&=(cfl32 &value) { return (cfp16n &)(data &= toFixed(value).data); }
    inline cfp16n operator|=(cfl32 &value) { return (cfp16n &)(data |= toFixed(value).data); }
@@ -741,18 +741,18 @@ struct fp24n {
    inline cbool operator||(cfl32 &value) const { return data || toFixed(value); }
    inline cbool operator&&(cfl32 &value) const { return data && toFixed(value); }
 
-   inline cfp24n operator+(cfl32 &value) const { return (cfp24n &)(data + toFixedMod(value)); }
-   inline cfp24n operator-(cfl32 &value) const { return (cfp24n &)(data - toFixedMod(value)); }
-   inline cfp24n operator*(cfl32 &value) const { return toFixed(toFloat() * value); }
-   inline cfp24n operator/(cfl32 &value) const { return toFixed(toFloat() / value); }
+   inline cfl32 operator+(cfl32 &value) const { return toFloat() + value; }
+   inline cfl32 operator-(cfl32 &value) const { return toFloat() - value; }
+   inline cfl32 operator*(cfl32 &value) const { return toFloat() * value; }
+   inline cfl32 operator/(cfl32 &value) const { return toFloat() / value; }
    inline cfp24n operator%(cfl32 &value) const { return (cfp24n &)(data % toFixed(value)); }
    inline cfp24n operator&(cfl32 &value) const { return (cfp24n &)(data & toFixed(value)); }
    inline cfp24n operator|(cfl32 &value) const { return (cfp24n &)(data | toFixed(value)); }
    inline cfp24n operator^(cfl32 &value) const { return (cfp24n &)(data ^ toFixed(value)); }
-   inline cfp24n operator+=(cfl32 &value) { return (cfp24n &)(data += toFixedMod(value)); }
-   inline cfp24n operator-=(cfl32 &value) { return (cfp24n &)(data -= toFixedMod(value)); }
-   inline cfp24n operator*=(cfl32 &value) { return *this = toFixed(toFloat() * value); }
-   inline cfp24n operator/=(cfl32 &value) { return *this = toFixed(toFloat() / value); }
+   inline cfl32 operator+=(cfl32 &value) { cfl32 temp = toFloat() + value; *this = toFixed(temp); return temp; }
+   inline cfl32 operator-=(cfl32 &value) { cfl32 temp = toFloat() - value; *this = toFixed(temp); return temp; }
+   inline cfl32 operator*=(cfl32 &value) { cfl32 temp = toFloat() * value; *this = toFixed(temp); return temp; }
+   inline cfl32 operator/=(cfl32 &value) { cfl32 temp = toFloat() / value; *this = toFixed(temp); return temp; }
    inline cfp24n operator%=(cfl32 &value) { return (cfp24n &)(data %= toFixed(value)); }
    inline cfp24n operator&=(cfl32 &value) { return (cfp24n &)(data &= toFixed(value)); }
    inline cfp24n operator|=(cfl32 &value) { return (cfp24n &)(data |= toFixed(value)); }
@@ -863,18 +863,18 @@ struct fp32n {
    inline cbool operator||(cfl64 &value) const { return data || toFixed(value); }
    inline cbool operator&&(cfl64 &value) const { return data && toFixed(value); }
 
-   inline cfp32n operator+(cfl64 &value) const { return (cfp32n &)(data + toFixedMod(value)); }
-   inline cfp32n operator-(cfl64 &value) const { return (cfp32n &)(data - toFixedMod(value)); }
-   inline cfp32n operator*(cfl64 &value) const { return toFixed(toFloat() * value); }
-   inline cfp32n operator/(cfl64 &value) const { return toFixed(toFloat() / value); }
+   inline cfl64 operator+(cfl64 &value) const { return toFloat() + value; }
+   inline cfl64 operator-(cfl64 &value) const { return toFloat() - value; }
+   inline cfl64 operator*(cfl64 &value) const { return toFloat() * value; }
+   inline cfl64 operator/(cfl64 &value) const { return toFloat() / value; }
    inline cfp32n operator%(cfl64 &value) const { return (cfp32n &)(data % toFixed(value)); }
    inline cfp32n operator&(cfl64 &value) const { return (cfp32n &)(data & toFixed(value)); }
    inline cfp32n operator|(cfl64 &value) const { return (cfp32n &)(data | toFixed(value)); }
    inline cfp32n operator^(cfl64 &value) const { return (cfp32n &)(data ^ toFixed(value)); }
-   inline cfp32n operator+=(cfl64 &value) { return (cfp32n &)(data += toFixedMod(value)); }
-   inline cfp32n operator-=(cfl64 &value) { return (cfp32n &)(data -= toFixedMod(value)); }
-   inline cfp32n operator*=(cfl64 &value) { return data = toFixed(toFloat() * value); }
-   inline cfp32n operator/=(cfl64 &value) { return data = toFixed(toFloat() / value); }
+   inline cfl64 operator+=(cfl64 &value) { cfl64 temp = toFloat() + value; *this = toFixed(temp); return temp; }
+   inline cfl64 operator-=(cfl64 &value) { cfl64 temp = toFloat() - value; *this = toFixed(temp); return temp; }
+   inline cfl64 operator*=(cfl64 &value) { cfl64 temp = toFloat() * value; *this = toFixed(temp); return temp; }
+   inline cfl64 operator/=(cfl64 &value) { cfl64 temp = toFloat() / value; *this = toFixed(temp); return temp; }
    inline cfp32n operator%=(cfl64 &value) { return (cfp32n &)(data %= toFixed(value)); }
    inline cfp32n operator&=(cfl64 &value) { return (cfp32n &)(data &= toFixed(value)); }
    inline cfp32n operator|=(cfl64 &value) { return (cfp32n &)(data |= toFixed(value)); }
