@@ -4,7 +4,7 @@ File: typedefs.h
 
 Provides convenient short-hand names for all standard data types. Naming scheme is as follows; pointers are read right-to-left to avoid naming clashes:
 
-(state)[sign][integer/float][bits][pointers with state modifiers]
+{state}[sign][integer/float][bits][pointers with state modifiers]
 
 Examples:
 
@@ -30,7 +30,7 @@ File: vector structures.h
 
 Provides vector data types for all standard, SSE, and AVX data types, including 24-bit integers. Vector element counts range from 2 to 64. Naming scheme is similar to that of "typedefs.h":
 
-(state)VEC[element count]D[sign][element type]
+{state}VEC[element count]D[sign][element type]
 
 Examples:
 
@@ -50,7 +50,7 @@ File: Fixed-point data types.h
 
 Provides a broad range of fixed-point data types. There are 8, 16, 24, and 32-bit variants available, including types with a user-definable range, as well as vectors of 2 & 4 elements. Naming scheme is as follows:
 
-(state)f(integer bits)p[fraction bits](normalised)([lowest value]_[highest value])
+{state}f{integer bits}p[fraction bits]{normalised}{[lowest value]_[highest value]}
 
 Examples:
 
