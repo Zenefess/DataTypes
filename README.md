@@ -9,7 +9,9 @@ Provides convenient short-hand names for all standard data types. Naming scheme 
 Examples:
 
 "ui32" is 32-bit unsigned integer.
+
 "vsi128ptrc" is constant pointer to a 128-bit volatile signed integer.
+
 "vptrcptr" is pointer to constant pointer to volatile.
 
 .
@@ -33,8 +35,11 @@ Provides vector data types for all standard, SSE, and AVX data types, including 
 Examples:
 
 "VEC3Ds24" is a vector of three 24-bit signed integers.
+
 "SSE4Df32" is a vector of four 32-bit floats, for use with 128-bit SIMD operations.
+
 "cAVX16Du16" is a constant vector of sixteen 16-bit unsigned integers, for use with 256-bit SIMD operations.
+
 "vAVX8Df64" is a volatile vector of eight 64-bit floats, for use with 512-bit SIMD operations.
 
 .
@@ -50,6 +55,9 @@ Provides a broad range of fixed-point data types. There are 8, 16, 24, and 32-bi
 Examples:
 
 "fp8n" is 8 bits with a range that is user-definable.
+
 "cfs1p14x2" is two constant 16 bits, each with a signed range of -2.0~1.99993896484375.
+
 "fp16n_0_128" is 32 bits with a signed range of 0.0~128.0.
+
 "fp32n_1_1" is 32 bits with a signed range of -1.0~1.0.
