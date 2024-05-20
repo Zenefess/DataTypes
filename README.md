@@ -58,6 +58,6 @@ Examples:
 
 "cfs1p14x2" is two constant 16 bits, each with a signed range of -2.0~1.99993896484375.
 
-"fp16n_0_128" is 32 bits with a normalised range of 0.0~128.0.
+"fp16n0_128" is 32 bits with a normalised range of 0.0~128.0.
 
 "fp32n_1_1" is 32 bits with a normalised range of -1.0~1.0.
