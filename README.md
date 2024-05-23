@@ -4,7 +4,7 @@ File: typedefs.h
 
 Provides convenient short-hand names for all standard data types. Naming scheme is as follows; pointers are read right-to-left to avoid naming clashes:
 
-{state}[sign][integer/float][bits][pointers with state modifiers]
+{state}[sign][integer/float][bits]{pointers with state modifiers}
 
 Examples:
 
