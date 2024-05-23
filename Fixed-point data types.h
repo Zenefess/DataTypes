@@ -1,6 +1,6 @@
 /**********************************************************************
  * File: Fixed-point data types.h                 Created: 2024/05/11 *
- *                                          Last modified: 2024/05/22 *
+ *                                          Last modified: 2024/05/23 *
  *                                                                    *
  * Desc: Provides sizes of 8, 16, 24, and 32 bits. All sizes have     *
  *       support for fixed, normalised, and custom value ranges.      *
@@ -15,7 +15,7 @@
  *        global space of one of your project's .c/.cpp source files. *
  *        SSE3 support required. AVX2 and AVX512 support optional.    *
  *                                                                    *
- *                                   Copyright (c) David William Bull *
+ * MIT license.                     Copyright (c) David William Bull. *
  **********************************************************************/
 #pragma once
 

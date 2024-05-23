@@ -6,7 +6,7 @@
  *        2024/04/04: Added support for 24-bit integers.    *
  *        2024/05/18: Added AVX512 support.                 *
  *                                                          *
- *                         Copyright (c) David William Bull *
+ * MIT license.            Copyright (c) David William Bull *
  ************************************************************/
 #pragma once
 
