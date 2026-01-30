@@ -16,14 +16,6 @@ Examples:
 
 .
 
-File: 24-bit integers.h
-
-
-
-Provides 24-bit integers, both signed and unsigned variants. Uses same naming scheme as "typedefs.h": eg. "ui24" for 24-bit unsigned integer. All arithmetic, logic, and conversion operations with all standard data types of up to 64 bits are supported.
-
-.
-
 File: vector structures.h
 
 
